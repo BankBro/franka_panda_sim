@@ -1,0 +1,14 @@
+# position in world frame, unit: meter
+float32 x
+float32 y
+float32 z
+
+# Euler angles(intrinsic rotation), unit: radian
+float32 yaw
+float32 pitch
+float32 roll
+
+---
+
+# result of action
+uint8 go_ret

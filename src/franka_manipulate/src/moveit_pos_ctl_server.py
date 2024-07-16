@@ -4,11 +4,12 @@ import rospy
 import sys
 import math
 import moveit_commander
-from moveit_msgs.msg import RobotTrajectory
-from trajectory_msgs.msg import JointTrajectoryPoint
 
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import PoseStamped
+from franka_manipulate.srv import MoveitPosCtl, MoveitPosCtlRequest, MoveitPosCtlResponse
+
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
 
 class MoveitPositionController:
     def __init__(self, reference_frame:str="world"):
@@ -39,17 +40,20 @@ class MoveitPositionController:
         self.arm.set_named_target(target_name)
         self.arm.go()
         # rospy.sleep(1)
-    def arm_go_target_pos(self, pos:list, rot:list):
+
+    def get_target_pose(self):
+        return
+    def arm_go_target_pos(self, request:MoveitPosCtlRequest):
         # set target pose
         target_pose = PoseStamped()
         target_pose.header.frame_id = self.reference_frame
         target_pose.header.stamp = rospy.Time.now()
 
-        target_pose.pose.position.x = pos[0]
-        target_pose.pose.position.y = pos[1]
-        target_pose.pose.position.z = pos[2]
+        target_pose.pose.position.x = request.x
+        target_pose.pose.position.y = request.y
+        target_pose.pose.position.z = request.z
 
-        quaternion = quaternion_from_euler(rot[0], rot[1], rot[2])
+        quaternion = quaternion_from_euler(request.yaw, request.pitch, request.roll, axes='sxyz')
         target_pose.pose.orientation.x = quaternion[0]
         target_pose.pose.orientation.y = quaternion[1]
         target_pose.pose.orientation.z = quaternion[2]
@@ -61,10 +65,16 @@ class MoveitPositionController:
         go_ret = self.arm.go()
         
         if not go_ret:
-            rospy.logerr(f"Failed to go to target pose: {pos}, rot: {rot}")
-
+            rospy.logerr(f"Failed to go to target, pose: {request.x, request.y, request.z}, \
+                         rot: {request.yaw, request.pitch, request.roll}.")
+        return MoveitPosCtlResponse(go_ret)
+    
+    def get_arm_target_trajectory(self, pos:list, rot:list):
+        return
 
 if __name__ == "__main__":
     pos_ctl = MoveitPositionController()
-    # pos_ctl.arm_go_named_target("home")
-    pos_ctl.arm_go_target_pos([0.2, -0.1, 0.3], [math.pi/3, -math.pi, 0])
+    # pos_ctl.arm_go_target_pos([0.2, -0.1, 0.3], [math.pi/3, -math.pi, 0])
+    pos_ctl_srv = rospy.Service('moveit_pos_ctl', MoveitPosCtl, pos_ctl.arm_go_target_pos)
+    rospy.loginfo("moveit_pos_ctl service is ready.")
+    rospy.spin()
