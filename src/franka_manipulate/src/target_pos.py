@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import rospy
+import sys
+import math
+import moveit_commander
+from moveit_msgs.msg import RobotTrajectory
+from trajectory_msgs.msg import JointTrajectoryPoint
+
+from geometry_msgs.msg import PoseStamped, Pose
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
+class MoveitPositionController:
+    def __init__(self, reference_frame:str="world"):
+        # initialize move_group
+        moveit_commander.roscpp_initialize(sys.argv)
+
+        # initialize node
+        rospy.init_node('moveit_target_pos', anonymous=True)
+
+        # initialize group arm
+        self.arm = moveit_commander.MoveGroupCommander("arm")
+
+        # get end effector link
+        self.end_effector_link = self.arm.get_end_effector_link()
+
+        # set reference frame
+        self.reference_frame = reference_frame
+        self.arm.set_pose_reference_frame(self.reference_frame)
+        self.arm.allow_replanning(True)
+
+        # set tolerance
+        self.arm.set_goal_orientation_tolerance(0.01)
+        self.arm.set_goal_position_tolerance(0.05)
+
+        self.arm_go_named_target("home")
+
+    def arm_go_named_target(self, target_name:str = "home"):
+        self.arm.set_named_target(target_name)
+        self.arm.go()
+        # rospy.sleep(1)
+    def arm_go_target_pos(self, pos:list, rot:list):
+        # set target pose
+        target_pose = PoseStamped()
+        target_pose.header.frame_id = self.reference_frame
+        target_pose.header.stamp = rospy.Time.now()
+
+        target_pose.pose.position.x = pos[0]
+        target_pose.pose.position.y = pos[1]
+        target_pose.pose.position.z = pos[2]
+
+        quaternion = quaternion_from_euler(rot[0], rot[1], rot[2])
+        target_pose.pose.orientation.x = quaternion[0]
+        target_pose.pose.orientation.y = quaternion[1]
+        target_pose.pose.orientation.z = quaternion[2]
+        target_pose.pose.orientation.w = quaternion[3]
+
+        # set start and target pose and execute
+        self.arm.set_start_state_to_current_state()
+        self.arm.set_pose_target(target_pose, self.end_effector_link)
+        go_ret = self.arm.go()
+        
+        if not go_ret:
+            rospy.logerr(f"Failed to go to target pose: {pos}, rot: {rot}")
+
+
+if __name__ == "__main__":
+    pos_ctl = MoveitPositionController()
+    # pos_ctl.arm_go_named_target("home")
+    pos_ctl.arm_go_target_pos([0.2, -0.1, 0.3], [math.pi/3, -math.pi, 0])
