@@ -7,5 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export PKG_CONFIG_PATH="/project/franka_panda_sim_ws/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD='/project/franka_panda_sim_ws/build'

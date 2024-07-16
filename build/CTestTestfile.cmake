@@ -7,4 +7,5 @@
 subdirs("gtest")
 subdirs("franka_gazebo")
 subdirs("franka_moveit_config")
+subdirs("franka_manipulate")
 subdirs("franka_description")
