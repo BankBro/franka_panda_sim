@@ -1,0 +1,15 @@
+<launch>
+  
+    <!-- Launch Gazebo  -->
+    <include file="$(find franka_gazebo)/launch/gazebo_world.launch" />
+
+    <!-- ros_control arm launch file -->
+    <include file="$(find franka_gazebo)/launch/joint_state_controller.launch" />   
+
+    <!-- ros_control trajectory control dof arm launch file -->
+    <include file="$(find franka_gazebo)/launch/joint_trajectory_controller.launch" />
+
+    <!-- moveit launch file -->
+    <include file="$(find franka_gazebo)/launch/moveit_planning_execution.launch" />
+
+</launch>

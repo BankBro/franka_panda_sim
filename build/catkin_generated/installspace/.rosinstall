@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /project/franka_panda_sim_ws/install/setup.sh

@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: franka_description
+    relative_path: robots/panda_arm_camera.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/panda_hand_camera.srdf
+  CONFIG:
+    author_name: Bank Lee
+    author_email: 1025052251@qq.com
+    generated_timestamp: 1720949623
