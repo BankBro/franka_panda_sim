@@ -32,6 +32,10 @@
 
     <link name="${ns}_grip_center"/>
     <joint name="${ns}_grip_center_joint" type="fixed">
+			<origin xyz="0 0 0.2" rpy="0 0 0" />
+			<parent link="${ns}_hand" />
+			<child link="${ns}_grip_center" />
+		</joint>
     
 
 
