@@ -14,11 +14,11 @@ def moveit_pos_ctl_client():
 
         request = MoveitPosCtlRequest()
         request.x = 0.2
-        request.y = -0.3
-        request.z = 0.4
+        request.y = 0.5
+        request.z = 0.1
         request.yaw = math.pi / 4
-        request.pitch = math.pi / 2
-        request.roll = -math.pi / 3
+        request.pitch = math.pi
+        request.roll = math.pi / 3
 
         response:MoveitPosCtlResponse = service(request)
         return response.go_ret

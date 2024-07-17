@@ -29,6 +29,12 @@
       </inertial>
       <!-- end for simulation -->
     </link>
+
+    <link name="${ns}_grip_center"/>
+    <joint name="${ns}_grip_center_joint" type="fixed">
+    
+
+
     <link name="${ns}_leftfinger">
       <visual>
         <geometry>
