@@ -10,7 +10,7 @@
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     <group name="arm">
-        <chain base_link="panda_link0" tip_link="panda_hand"/>
+        <chain base_link="panda_link0" tip_link="panda_grip_center"/>
     </group>
     <group name="gripper">
         <link name="panda_leftfinger"/>
@@ -33,12 +33,21 @@
         <joint name="panda_joint2" value="0"/>
         <joint name="panda_joint3" value="0"/>
         <joint name="panda_joint4" value="-0.0698"/>
-        <joint name="panda_joint5" value="0"/>
+        <joint name="panda_joint5" value="2.8973"/>
         <joint name="panda_joint6" value="3.1415"/>
-        <joint name="panda_joint7" value="0.6668"/>
+        <joint name="panda_joint7" value="1.5708"/>
+    </group_state>
+    <group_state name="forward" group="arm">
+        <joint name="panda_joint1" value="0"/>
+        <joint name="panda_joint2" value="1.5708"/>
+        <joint name="panda_joint3" value="0"/>
+        <joint name="panda_joint4" value="-0.0698"/>
+        <joint name="panda_joint5" value="0"/>
+        <joint name="panda_joint6" value="1.5708"/>
+        <joint name="panda_joint7" value="0"/>
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="gripper" parent_link="panda_hand" group="gripper"/>
+    <end_effector name="gripper" parent_link="panda_grip_center" group="gripper"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="panda_hand" link2="panda_leftfinger" reason="Adjacent"/>
     <disable_collisions link1="panda_hand" link2="panda_link4" reason="Never"/>

@@ -1,6 +1,6 @@
 <package>
 
-  <name>franka_moveit_config_new1</name>
+  <name>franka_moveit_config</name>
   <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the panda_hand_camera with the MoveIt Motion Planning Framework

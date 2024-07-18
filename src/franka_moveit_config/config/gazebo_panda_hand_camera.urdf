@@ -341,6 +341,7 @@
                 <gripper_link>panda_leftfinger</gripper_link>
                 <gripper_link>panda_rightfinger</gripper_link>
             </arm>
+            <robotNamespace>/franka_panda</robotNamespace>
             <forces_angle_tolerance>100</forces_angle_tolerance>
             <update_rate>20</update_rate>
             <grip_count_threshold>4</grip_count_threshold>
@@ -394,6 +395,12 @@
         </inertial>
         <!-- end for simulation -->
     </link>
+    <link name="panda_grip_center" />
+    <joint name="panda_grip_center_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 0.1" />
+        <parent link="panda_hand" />
+        <child link="panda_grip_center" />
+    </joint>
     <link name="panda_leftfinger">
         <visual>
             <geometry>
@@ -635,8 +642,11 @@
         </actuator>
     </transmission>
     <gazebo>
-        <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control" />
-        <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+        <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+            <robotNamespace>/franka_panda</robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+            <legacyModeNS>true</legacyModeNS>
+        </plugin>
     </gazebo>
     <!-- end for simulation -->
     <!-- joint/link data -->
@@ -658,7 +668,7 @@
         <sensor name="panda_camera" type="depth">
             <always_on>1</always_on>
             <visualize>true</visualize>
-            <update_rate>0</update_rate>
+            <update_rate>20.0</update_rate>
             <camera>
                 <horizontal_fov>1.047198</horizontal_fov>
                 <image>
@@ -675,7 +685,7 @@
             <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_controller">
                 <baseline>0.2</baseline>
                 <alwaysOn>true</alwaysOn>
-                <updateRate>0.0</updateRate>
+                <updateRate>10</updateRate>
                 <cameraName>/panda_camera</cameraName>
                 <imageTopicName>/panda_camera/rgb/image_raw</imageTopicName>
                 <cameraInfoTopicName>/panda_camera/rgb/camera_info</cameraInfoTopicName>
