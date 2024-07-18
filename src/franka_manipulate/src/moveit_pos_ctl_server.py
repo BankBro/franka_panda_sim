@@ -74,7 +74,6 @@ class MoveitPositionController:
 
 if __name__ == "__main__":
     pos_ctl = MoveitPositionController()
-    # pos_ctl.arm_go_target_pos([0.2, -0.1, 0.3], [math.pi/3, -math.pi, 0])
-    pos_ctl_srv = rospy.Service('moveit_pos_ctl', MoveitPosCtl, pos_ctl.arm_go_target_pos)
+    rospy.Service('moveit_pos_ctl', MoveitPosCtl, pos_ctl.arm_go_target_pos)
     rospy.loginfo("moveit_pos_ctl service is ready.")
     rospy.spin()

@@ -1,0 +1,5 @@
+<launch>
+  <node name="franka_predict_traj" pkg="franka_predict_traj" type="franka_predict_traj.py">
+    <param name="subscribe_topic" value="/third_view_camera/rgb/image_raw" />
+  </node>
+</launch>
