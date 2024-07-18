@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="camera">
- 	<xacro:macro name="camera_gazebo_sensor" params="xyz rpy parent sensor_name">
+ 	<xacro:macro name="camera_gazebo_sensor" params="xyz rpy parent camera_name">
 
     	<!-- joint/link data -->
     	<!-- You can modify this to give the camera actual geometry -->
-    	<link name="camera_link"></link>
-    	<link name="${sensor_name}_optical_link"></link>
+    	<link name="${camera_name}_link"></link>
+    	<link name="${camera_name}_optical_link"></link>
 
-		<joint name="robot_camera_joint" type="fixed">
+		<joint name="${camera_name}_fixed_joint" type="fixed">
 			<origin xyz="${xyz}" rpy="${rpy}" />
 			<parent link="${parent}" />
-			<child link="camera_link" />
+			<child link="${camera_name}_link" />
 		</joint>
-		<joint name="camera_optical_joint" type="fixed">
+		<joint name="${camera_name}_optical_joint" type="fixed">
 			<origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
-			<parent link="camera_link" />
-			<child link="${sensor_name}_optical_link" />
+			<parent link="${camera_name}_link" />
+			<child link="${camera_name}_optical_link" />
 		</joint>
 
 
 		<!-- Sensor -->
-		<gazebo reference="camera_link">
+		<gazebo reference="${camera_name}_link">
 		
-			<sensor type="depth" name="${sensor_name}">
+			<sensor type="depth" name="${camera_name}">
 				<always_on>1</always_on>
 				<visualize>true</visualize>
 				<update_rate>20.0</update_rate>
@@ -44,13 +44,13 @@
 					<baseline>0.2</baseline>
 					<alwaysOn>true</alwaysOn>
 					<updateRate>10</updateRate>
-					<cameraName>/${sensor_name}</cameraName>
-					<imageTopicName>/${sensor_name}/rgb/image_raw</imageTopicName>
-					<cameraInfoTopicName>/${sensor_name}/rgb/camera_info</cameraInfoTopicName>
-					<depthImageTopicName>/${sensor_name}/depth/image_raw</depthImageTopicName>
-					<depthImageInfoTopicName>/${sensor_name}/depth/camera_info</depthImageInfoTopicName>
-					<pointCloudTopicName>/${sensor_name}/depth/points</pointCloudTopicName>
-					<frameName>${sensor_name}_optical_link</frameName>
+					<cameraName>/${camera_name}</cameraName>
+					<imageTopicName>/${camera_name}/rgb/image_raw</imageTopicName>
+					<cameraInfoTopicName>/${camera_name}/rgb/camera_info</cameraInfoTopicName>
+					<depthImageTopicName>/${camera_name}/depth/image_raw</depthImageTopicName>
+					<depthImageInfoTopicName>/${camera_name}/depth/camera_info</depthImageInfoTopicName>
+					<pointCloudTopicName>/${camera_name}/depth/points</pointCloudTopicName>
+					<frameName>${camera_name}_optical_link</frameName>
 					<pointCloudCutoff>0.1</pointCloudCutoff>
 					<pointCloudCutoffMax>3</pointCloudCutoffMax>
 					<distortionK1>0</distortionK1>
