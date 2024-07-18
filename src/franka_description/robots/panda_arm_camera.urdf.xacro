@@ -7,9 +7,9 @@
 
   <xacro:camera_gazebo_sensor xyz="0.05 -0.05 0" rpy="-1.57 -1.57 -0.785"
 			      parent="panda_link8"
-			      sensor_name="first_view_camera" />
+			      camera_name="first_view_camera" />
 
   <xacro:camera_gazebo_sensor xyz="-0.05 0 0.5" rpy="0 0 0"
-			      parent="world"
-			      sensor_name="third_view_camera" />
+			      parent="panda_link0"
+			      camera_name="third_view_camera" />
 </robot>
