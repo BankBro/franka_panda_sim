@@ -8,7 +8,7 @@
 
  # The visualization component of MoveIt!
  <include file="$(find franka_moveit_config)/launch/moveit_rviz.launch">
-  <arg name="rviz_config" value="" />
+  <arg name="rviz_config" value="$(find franka_gazebo)/config/moveit.rviz"/>
  </include>
 
   <!-- We do not have a robot connected, so publish fake joint states -->
