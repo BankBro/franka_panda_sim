@@ -134,6 +134,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/project/franka_panda_sim_ws/build/franka_gazebo/cmake_install.cmake")
   include("/project/franka_panda_sim_ws/build/franka_moveit_config/cmake_install.cmake")
   include("/project/franka_panda_sim_ws/build/franka_manipulate/cmake_install.cmake")
+  include("/project/franka_panda_sim_ws/build/franka_predict_traj/cmake_install.cmake")
   include("/project/franka_panda_sim_ws/build/franka_description/cmake_install.cmake")
 
 endif()

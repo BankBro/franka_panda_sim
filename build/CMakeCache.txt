@@ -433,6 +433,12 @@ franka_moveit_config_BINARY_DIR:STATIC=/project/franka_panda_sim_ws/build/franka
 //Value Computed by CMake
 franka_moveit_config_SOURCE_DIR:STATIC=/project/franka_panda_sim_ws/src/franka_moveit_config
 
+//Value Computed by CMake
+franka_predict_traj_BINARY_DIR:STATIC=/project/franka_panda_sim_ws/build/franka_predict_traj
+
+//Value Computed by CMake
+franka_predict_traj_SOURCE_DIR:STATIC=/project/franka_panda_sim_ws/src/franka_predict_traj
+
 //The directory containing a CMake configuration file for gencpp.
 gencpp_DIR:PATH=/opt/ros/noetic/share/gencpp/cmake
 
@@ -726,7 +732,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=9
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

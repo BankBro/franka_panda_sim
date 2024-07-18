@@ -57,6 +57,7 @@ all: gtest/all
 all: franka_gazebo/all
 all: franka_moveit_config/all
 all: franka_manipulate/all
+all: franka_predict_traj/all
 all: franka_description/all
 
 .PHONY : all
@@ -66,6 +67,7 @@ preinstall: gtest/preinstall
 preinstall: franka_gazebo/preinstall
 preinstall: franka_moveit_config/preinstall
 preinstall: franka_manipulate/preinstall
+preinstall: franka_predict_traj/preinstall
 preinstall: franka_description/preinstall
 
 .PHONY : preinstall
@@ -80,6 +82,7 @@ clean: gtest/clean
 clean: franka_gazebo/clean
 clean: franka_moveit_config/clean
 clean: franka_manipulate/clean
+clean: franka_predict_traj/clean
 clean: franka_description/clean
 
 .PHONY : clean
@@ -211,6 +214,24 @@ franka_moveit_config/preinstall:
 franka_moveit_config/clean:
 
 .PHONY : franka_moveit_config/clean
+
+#=============================================================================
+# Directory level rules for directory franka_predict_traj
+
+# Recursive "all" directory target.
+franka_predict_traj/all:
+
+.PHONY : franka_predict_traj/all
+
+# Recursive "preinstall" directory target.
+franka_predict_traj/preinstall:
+
+.PHONY : franka_predict_traj/preinstall
+
+# Recursive "clean" directory target.
+franka_predict_traj/clean:
+
+.PHONY : franka_predict_traj/clean
 
 #=============================================================================
 # Directory level rules for directory gtest
