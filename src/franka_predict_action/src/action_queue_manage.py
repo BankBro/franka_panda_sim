@@ -1,12 +1,24 @@
 #! /usr/bin/env python
+from typing import Tuple
 
 import rospy
 import queue
 import threading
 
-from franka_predict_traj.srv import PredictAction, PredictActionRequest, PredictActionResponse
-from franka_predict_traj.srv import StoreNewActionToQueue, StoreNewActionToQueueRequest, StoreNewActionToQueueResponse
-from franka_predict_traj.srv import FetchSingleAction, FetchSingleActionResponse
+from franka_predict_traj.srv import (
+    PredictAction,
+    PredictActionRequest,
+    PredictActionResponse,
+)
+from franka_predict_traj.srv import (
+    StoreNewActionToQueue,
+    StoreNewActionToQueueRequest,
+    StoreNewActionToQueueResponse,
+)
+from franka_predict_traj.srv import (
+    FetchSingleAction,
+    FetchSingleActionResponse,
+)
 
 
 class ActionQueueManage():
@@ -14,57 +26,64 @@ class ActionQueueManage():
         self.action_queue = queue.Queue(maxsize=100)
         self.action_queue_mutex = threading.Lock()
 
-        # subscribe service of predict_action_by_model_service to get and store predict actions
-        self.predict_action_by_model_service = rospy.ServiceProxy("predict_action_by_model_service", PredictAction)
+        # Subscribe service of action prediction, to get and store predict actions.
+        self.predict_action_by_model_service = rospy.ServiceProxy(
+            rospy.get_param("prediction_service"), PredictAction
+        )
 
-        # publish service
-        rospy.Service("store_new_action_to_queue_service", StoreNewActionToQueue, self.handle_store_new_action)
-        rospy.Service("fetch_single_action_from_queue_service", FetchSingleAction, self.handle_fetch_single_action)
+        # Publish service.
+        rospy.Service(rospy.get_param("store_new_action"), StoreNewActionToQueue, self.handle_store_new_action)
+        rospy.Service(rospy.get_param("fetch_single_action"), FetchSingleAction, self.handle_fetch_single_action)
 
     @staticmethod
-    def get_action_list_from_flatten(action_shape:list, action_flat:list) -> list:
+    def get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:
         action_list = []
 
         for i in range(action_shape[0]):
-            action_list.append(action_flat[i * action_shape[1] : (i + 1) * action_shape[1]])
-        
+            action_list.append(action_flat[i * action_shape[1]: (i + 1) * action_shape[1]])
+
         return action_list
-    
-    def get_predict_action(self, model_name:str, instruction:str, unnorm_key:str):
+
+    def get_predict_action(self, model_name: str, instruction: str, unnorm_key: str) -> Tuple[bool, list]:
         request = PredictActionRequest()
         request.model_name = model_name
         request.instruction = instruction
         request.unnorm_key = unnorm_key
 
-        # do service call to get actions
-        response:PredictActionResponse = self.predict_action_by_model_service(request)
+        # Call predict server to get actions.
+        response: PredictActionResponse = self.predict_action_by_model_service(request)
 
-        predict_ret = response.predict_ret
-        if predict_ret is False:
-            rospy.logerr(f"Predict action failed!, model_name({model_name}), ",
-                         f"instruction({instruction}), unnorm_key({unnorm_key})")
-            return predict_ret, None
+        # If predict succeed, get action_list.
+        predict_succeed = response.predict_ret
+        if predict_succeed:
+            action_shape = response.action_shape
+            action_flat = response.action_flat
+            action_list = ActionQueueManage.get_action_list_from_flatten(action_shape, action_flat)
 
-        action_shape = response.action_shape
-        action_flat = response.action_flat
-        action_list = ActionQueueManage.get_action_list_from_flatten(action_shape, action_flat)
+        else:
+            rospy.logerr(
+                f"Predict action failed! With model name: {model_name}, "
+                f"instruction: {instruction}, unnorm_key: {unnorm_key}"
+            )
+            action_list = None
 
-        return predict_ret, action_list
-    
-    def handle_store_new_action(self, request:StoreNewActionToQueueRequest):
+        return predict_succeed, action_list
+
+    def handle_store_new_action(self, request: StoreNewActionToQueueRequest):
         model_name = request.model_name
         instruction = request.instruction
         unnorm_key = request.unnorm_key
         response = StoreNewActionToQueueResponse()
 
-        predict_ret, action_list = self.get_predict_action(self, model_name, instruction, unnorm_key)
-        if predict_ret is False:
+        _, action_list = self.get_predict_action(model_name, instruction, unnorm_key)
+        if action_list is None:
             rospy.logerr(f"Store new action failed!")
             response.store_ret = False
             return response
-        
-        # add new action to queue
+
+        # Put action_list into queue.
         self.action_queue_mutex.acquire()
+
         try:
             for act in action_list:
                 self.action_queue.put(act)
@@ -74,7 +93,7 @@ class ActionQueueManage():
             response.store_ret = False
         finally:
             self.action_queue_mutex.release()
-        
+
         return response
 
     def handle_fetch_single_action(self):
@@ -90,9 +109,9 @@ class ActionQueueManage():
             action = self.action_queue.get()
             response.fetch_ret = True
             response.action = action
-        
+
         self.action_queue_mutex.release()
-        
+
         return response
 
 
