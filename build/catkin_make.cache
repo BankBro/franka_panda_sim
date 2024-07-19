@@ -1,2 +1,2 @@
-franka_description:franka_gazebo:franka_manipulate:franka_moveit_config:franka_predict_traj
+franka_description:franka_gazebo:franka_manipulate:franka_moveit_config:franka_predict_action
 -DCATKIN_DEVEL_PREFIX=/project/franka_panda_sim_ws/devel -DCMAKE_INSTALL_PREFIX=/project/franka_panda_sim_ws/install -G Unix Makefiles

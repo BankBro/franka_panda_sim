@@ -434,6 +434,12 @@ franka_moveit_config_BINARY_DIR:STATIC=/project/franka_panda_sim_ws/build/franka
 franka_moveit_config_SOURCE_DIR:STATIC=/project/franka_panda_sim_ws/src/franka_moveit_config
 
 //Value Computed by CMake
+franka_predict_action_BINARY_DIR:STATIC=/project/franka_panda_sim_ws/build/franka_predict_action
+
+//Value Computed by CMake
+franka_predict_action_SOURCE_DIR:STATIC=/project/franka_panda_sim_ws/src/franka_predict_action
+
+//Value Computed by CMake
 franka_predict_traj_BINARY_DIR:STATIC=/project/franka_panda_sim_ws/build/franka_predict_traj
 
 //Value Computed by CMake
