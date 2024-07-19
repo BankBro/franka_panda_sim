@@ -5,17 +5,17 @@ import rospy
 import queue
 import threading
 
-from franka_predict_traj.srv import (
+from franka_predict_action.srv import (
     PredictAction,
     PredictActionRequest,
     PredictActionResponse,
 )
-from franka_predict_traj.srv import (
+from franka_predict_action.srv import (
     StoreNewActionToQueue,
     StoreNewActionToQueueRequest,
     StoreNewActionToQueueResponse,
 )
-from franka_predict_traj.srv import (
+from franka_predict_action.srv import (
     FetchSingleAction,
     FetchSingleActionResponse,
 )
@@ -27,7 +27,7 @@ class ActionQueueManage():
         self.action_queue_mutex = threading.Lock()
 
         # Subscribe service of action prediction, to get and store predict actions.
-        self.predict_action_by_model_service = rospy.ServiceProxy(
+        self.predict_action_server = rospy.ServiceProxy(
             rospy.get_param("prediction_service"), PredictAction
         )
 
@@ -51,7 +51,8 @@ class ActionQueueManage():
         request.unnorm_key = unnorm_key
 
         # Call predict server to get actions.
-        response: PredictActionResponse = self.predict_action_by_model_service(request)
+        rospy.wait_for_service("predict_action_server")
+        response: PredictActionResponse = self.predict_action_server(request)
 
         # If predict succeed, get action_list.
         predict_succeed = response.predict_ret

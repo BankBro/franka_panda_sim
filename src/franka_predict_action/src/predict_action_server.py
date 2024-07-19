@@ -11,7 +11,7 @@ from itertools import chain
 from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image as RosImage
-from franka_predict_traj.srv import (
+from franka_predict_action.srv import (
     PredictAction,
     PredictActionRequest,
     PredictActionResponse,
@@ -106,12 +106,8 @@ class PredictActionServer():
         pass
 
 
-def main():
+if __name__ == '__main__':
     rospy.init_node('predict_action_server')
     img_subscriber = ImageSubscriber()
     PredictActionServer(img_subscriber)
     rospy.spin()
-
-
-if __name__ == '__main__':
-    main()
