@@ -4,9 +4,9 @@ import rospy
 import queue
 import threading
 
-from franka_predict_action.srv import PredictAction, PredictActionRequest, PredictActionResponse
-from franka_predict_action.srv import StoreNewActionToQueue, StoreNewActionToQueueRequest, StoreNewActionToQueueResponse
-from franka_predict_action.srv import FetchSingleAction, FetchSingleActionResponse
+from franka_predict_traj.srv import PredictAction, PredictActionRequest, PredictActionResponse
+from franka_predict_traj.srv import StoreNewActionToQueue, StoreNewActionToQueueRequest, StoreNewActionToQueueResponse
+from franka_predict_traj.srv import FetchSingleAction, FetchSingleActionResponse
 
 
 class ActionQueueManage():

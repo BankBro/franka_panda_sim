@@ -10,7 +10,7 @@ from itertools import chain
 from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image as RosImage
-from franka_predict_action.srv import PredictAction, PredictActionRequest, PredictActionResponse
+from franka_predict_traj.srv import PredictAction, PredictActionRequest, PredictActionResponse
 
 
 class ImageSubscriber():
