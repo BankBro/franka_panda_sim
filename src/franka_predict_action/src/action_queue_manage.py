@@ -28,7 +28,7 @@ class ActionQueueManage():
 
         # Subscribe service of action prediction, to get and store predict actions.
         self.predict_action_service = rospy.ServiceProxy(
-            rospy.get_param("prediction_service"), PredictAction
+            rospy.get_param("~prediction_service"), PredictAction
         )
 
         # Publish service.
@@ -51,7 +51,9 @@ class ActionQueueManage():
         request.unnorm_key = unnorm_key
 
         # Call predict server to get actions.
-        rospy.wait_for_service("predict_action_service")
+        rospy.wait_for_service(
+            rospy.get_param("~prediction_service")
+        )
         response: PredictActionResponse = self.predict_action_service(request)
 
         # If predict succeed, get action_list.
