@@ -27,7 +27,7 @@ class ActionQueueManage():
         self.action_queue_mutex = threading.Lock()
 
         # Subscribe service of action prediction, to get and store predict actions.
-        self.predict_action_server = rospy.ServiceProxy(
+        self.predict_action_service = rospy.ServiceProxy(
             rospy.get_param("prediction_service"), PredictAction
         )
 
@@ -51,8 +51,8 @@ class ActionQueueManage():
         request.unnorm_key = unnorm_key
 
         # Call predict server to get actions.
-        rospy.wait_for_service("predict_action_server")
-        response: PredictActionResponse = self.predict_action_server(request)
+        rospy.wait_for_service("predict_action_service")
+        response: PredictActionResponse = self.predict_action_service(request)
 
         # If predict succeed, get action_list.
         predict_succeed = response.predict_ret
