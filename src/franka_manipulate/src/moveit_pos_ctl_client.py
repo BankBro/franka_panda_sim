@@ -20,15 +20,15 @@ def moveit_pos_ctl_client():
         request.pitch = math.pi
         request.roll = math.pi / 3
 
-        response:MoveitPosCtlResponse = service(request)
+        response: MoveitPosCtlResponse = service(request)
         return response.go_ret
-    
+
     except rospy.ServiceException as e:
         rospy.logerr(f"Service call failed: {e}")
 
 
 if __name__ == "__main__":
     rospy.init_node("moveit_pos_ctl_client")
-    
+
     ret = moveit_pos_ctl_client()
     rospy.loginfo(f"moveit_pos_ctl service call returned: {ret}")
