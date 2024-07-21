@@ -63,7 +63,10 @@ class MoveitPositionController:
         # set start and target pose and execute
         self.arm.set_start_state_to_current_state()
         self.arm.set_pose_target(target_pose, self.end_effector_link)
+        time_start = rospy.get_time()
         go_ret = self.arm.go()
+        time_end = rospy.get_time()
+        rospy.loginfo(f"exec time: {time_end - time_start}")
 
         if not go_ret:
             rospy.logerr(f"Failed to go to target, pose: {request.x, request.y, request.z}, \
