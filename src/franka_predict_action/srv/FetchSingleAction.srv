@@ -1,3 +1,4 @@
 ---
-bool fetch_ret
-float16[] action
+bool fetch_ret    # fetching result
+float16[] action  # single action
+uint8 queue_size  # the size of the queue after fetching

@@ -85,11 +85,12 @@ class ActionQueueManage():
         if self.action_queue.empty():
             rospy.logerr(f"Action queue is empty!")
             response.fetch_ret = False
-            response.action = None
         else:
             action = self.action_queue.get()
+
             response.fetch_ret = True
             response.action = action
+            response.queue_size = self.action_queue.qsize()
         
         self.action_queue_mutex.release()
         
@@ -99,6 +100,7 @@ class ActionQueueManage():
 def main():
     rospy.init_node("action_queue_manage")
     ActionQueueManage()
+    rospy.spin()
 
 
 if __name__ == "__main__":

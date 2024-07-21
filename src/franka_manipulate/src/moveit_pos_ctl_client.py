@@ -6,11 +6,11 @@ from franka_manipulate.srv import MoveitPosCtl, MoveitPosCtlRequest, MoveitPosCt
 
 
 def moveit_pos_ctl_client():
-    rospy.loginfo("Waiting for moveit_pos_ctl service...")
-    rospy.wait_for_service("moveit_pos_ctl")
+    rospy.loginfo("Waiting for moveit_pos_ctl_service service...")
+    rospy.wait_for_service("moveit_pos_ctl_service")
 
     try:
-        service = rospy.ServiceProxy("moveit_pos_ctl", MoveitPosCtl)
+        service = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
 
         request = MoveitPosCtlRequest()
         request.x = 0.2
@@ -31,4 +31,4 @@ if __name__ == "__main__":
     rospy.init_node("moveit_pos_ctl_client")
     
     ret = moveit_pos_ctl_client()
-    rospy.loginfo(f"moveit_pos_ctl service call returned: {ret}")
+    rospy.loginfo(f"moveit_pos_ctl_service service call returned: {ret}")

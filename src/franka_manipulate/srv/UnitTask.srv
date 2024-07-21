@@ -1,0 +1,7 @@
+string model_name   # the name of the model to predict
+string instruction  # the instruction sended to model for predicton
+string unnorm_key   # the dataset of the scene
+
+---
+
+bool exec_unit_task_ret
