@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
+import rospy
 from transitions import Machine
-from common import EventPost, if_event_valid
+from functools import partial
+from common import EventPost, event_receive_callback
+
+from franka_manipulate.msg import EventPublish
+
 
 states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
 
@@ -23,6 +28,7 @@ transitions = [
 
 class ActionTaskManageFSM():
     def __init__(self):
+        self.name = "action_task_manage"
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
 
         # define each callback function while entering each state
@@ -33,8 +39,13 @@ class ActionTaskManageFSM():
         self.machine.on_enter_predict_action(self.predict_action_callback)
         self.machine.on_enter_clear_action(self.clear_action_callback)
 
+        # Init event post mechanism.
+        self.event_post_instance = EventPost()
+        self.event_post = self.event_post_instance.postEventToAllFSM
+
     def init_callback(self):
-        pass
+        self.event_post('usr_req')
+        return
 
     def fetch_action_callback(self):
         pass
@@ -50,3 +61,15 @@ class ActionTaskManageFSM():
 
     def clear_action_callback(self):
         pass
+
+def main():
+    rospy.init_node('fsm_action_task_manage')
+    acion_task_manage_fsm_instance = ActionTaskManageFSM()
+
+    # Subscribe the topic of posting event to all FSM.
+    rospy.Subscriber("event_publish", EventPublish, partial(event_receive_callback, acion_task_manage_fsm_instance))
+    rospy.spin()
+
+
+if __name__ == '__main__':
+    main()
