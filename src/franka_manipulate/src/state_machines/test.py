@@ -33,14 +33,14 @@ machine = Machine(model=device, states=states, transitions=transitions, initial=
 
 # 测试状态机行为
 print(f"Current state after turning on: {device.state}")
-device.turn_on()
+device.turn_on_test()
 print(f"Current state after turning on: {device.state}")  # 输出: on
 # time.sleep(1)
 
-print()
+# print()
 
-print(f"Current state after turning on: {device.state}")
-device.turn_off_test()
-print(f"Current state after turning off: {device.state}")  # 输出: off
+# print(f"Current state after turning on: {device.state}")
+# device.turn_off_test()
+# print(f"Current state after turning off: {device.state}")  # 输出: off
 
-print()
+# print()

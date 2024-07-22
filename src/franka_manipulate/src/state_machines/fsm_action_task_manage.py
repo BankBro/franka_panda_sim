@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from transitions import Machine
+from common import EventPost, if_event_valid
 
 states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
 
@@ -20,8 +21,8 @@ transitions = [
 ]
 
 
-class ActionTaskManageFSM(object):
-    def __init__(self, name):
+class ActionTaskManageFSM():
+    def __init__(self):
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
 
         # define each callback function while entering each state

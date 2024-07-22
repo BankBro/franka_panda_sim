@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
 from transitions import Machine
+from common import EventPost, if_event_valid
 
 
 states = ['init', 'moving']
 
 transitions = [
-    {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
-    {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
-    {'trigger': 'reach_threshold',        'source': 'exec_action',       'dest': 'fetch_action'},
-    {'trigger': 'exec_action_failed',     'source': 'exec_action',       'dest': 'clear_action'},
+    {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
+    {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
+    {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
+    {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
 ]
 
-class ActionMoveFSM(object):
+class ActionMoveFSM():
     def __init__(self):
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
 
