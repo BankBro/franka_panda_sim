@@ -21,7 +21,7 @@ transitions = [
 
 class ActionTaskManageFSM(object):
 
-    def __init__(self, name):
+    def __init__(self):
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
 
         # define each callback function while entering each state
