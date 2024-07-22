@@ -19,8 +19,8 @@ transitions = [
     {'trigger': 'stop_exec',              'source': 'check_continue',    'dest': 'init'},
 ]
 
-class ActionTaskManageFSM(object):
 
+class ActionTaskManageFSM(object):
     def __init__(self, name):
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
 

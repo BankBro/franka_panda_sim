@@ -5,23 +5,21 @@ from franka_manipulate.srv import EventPostToServer, EventPostToServerRequest, E
 from franka_manipulate.msg import EventPublish
 
 
-class EventPublishServer():
+class EventPublishServer:
     def __init__(self):
-        # receive event service
-        self.event_receive = rospy.Service("event_receive", EventPostToServer, self.handle_event_post_to_server)
-
-        # event publish topic
-        self.event_publish = rospy.Publisher("event_publish", EventPublish, queue_size=10)
-
-        self.event_publish_msg.event_type = "init"
+        # Init event receiver and publisher.
+        self.event_receiver = rospy.Service("event_receive", EventPostToServer, self.handle_event_post_to_server)
+        self.event_publisher = rospy.Publisher("event_publish", EventPublish, queue_size=10)
 
     def handle_event_post_to_server(self, request: EventPostToServerRequest) -> EventPostToServerResponse:
-        pass
+        event_publish = EventPublish()
+        event_publish.event = request.event
+        event_publish.event_time = rospy.Time.now()
+        self.event_publisher.publish(event_publish)
+        return EventPostToServerResponse()
 
-def main():
-    rospy.init_node("event_publish_server")
-    event_publish_server = EventPublishServer()
-    rospy.spin()
 
 if __name__ == "__main__":
-    main()
+    rospy.init_node("event_publish_server")
+    EventPublishServer()
+    rospy.spin()
