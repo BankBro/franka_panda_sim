@@ -16,7 +16,10 @@ class EventPublishServer:
         event_publish.event = request.event
         event_publish.event_time = rospy.Time.now()
         self.event_publisher.publish(event_publish)
-        return EventPostToServerResponse()
+
+        event_post = EventPostToServerResponse()
+        event_post.post_ret = True
+        return event_post
 
 
 if __name__ == "__main__":
