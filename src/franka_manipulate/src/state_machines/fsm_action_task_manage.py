@@ -7,6 +7,11 @@ from common import EventPost, event_receive_callback
 
 from franka_manipulate.msg import EventPublish
 
+from franka_predict_action.srv import (
+    FetchSingleAction,
+    FetchSingleActionResponse,
+)
+
 
 states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
 
@@ -43,12 +48,29 @@ class ActionTaskManageFSM():
         self.event_post_instance = EventPost()
         self.event_post = self.event_post_instance.postEventToAllFSM
 
+        # Init fetch action from queue service.
+        self.fetch_action_service = rospy.ServiceProxy("fetch_single_action", FetchSingleAction)
+
     def init_callback(self):
         self.event_post('usr_req')
         return
 
     def fetch_action_callback(self):
-        pass
+        # Check if fsm is fetching action.
+        
+
+        response: FetchSingleActionResponse = self.fetch_action_service()
+        fetch_ret = response.response
+        action = response.action
+        queue_size = response.queue_size
+        
+        if fetch_ret and queue_size > 0:
+            self.event_post('fetch_ok_queue_remain')
+        elif fetch_ret and queue_size == 0:
+            self.event_post('fetch_ok_queue_empty')
+        elif not fetch_ret:
+            # fetch fail means queue is empty
+            self.event_post('queue_empty')
 
     def check_continue_callback(self):
         pass
