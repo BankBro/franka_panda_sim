@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-import rospy
-from transitions import Machine
-from functools import partial
-from common import EventPost, event_receive_callback
-
-from franka_manipulate.msg import EventPublish
+import math
+from common import *
+from event_master_2 import EventManager
 
 
 states = ['init', 'moving']
@@ -20,30 +17,55 @@ transitions = [
 class ActionMoveFSM():
     def __init__(self):
         self.name = "action_move"
-        self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
+        self.reference_frame = "world"
+        self.end_effector_link = "panda_grip_center"
 
+        self.source_pos = None
+        # self.source_pos_mutex = threading.Lock()
+
+        self.target_pos = None
+        # self.target_pos_mutex = threading.Lock()
+
+        self.action_distance_diff = None
+        self.action_distance_diff_mutex = threading.Lock()
+
+        ACTION_REACH_THRESHOLD.clear()
+
+        self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
         # define each callback function while entering each state
         self.machine.on_enter_init(self.init_callback)
         self.machine.on_enter_moving(self.moving_callback)
 
-        # Init event post mechanism.
-        self.event_post_instance = EventPost()
-        self.event_post = self.event_post_instance.postEventToAllFSM
-
     def init_callback(self):
-        pass
+        return
+
+    def _if_reach_threshold(self, tf_buffer):
+        current_pos, _ = get_link_pos(tf_buffer)
+
+        dx = TARGET_POS[0] - current_pos.x
+        dy = TARGET_POS[1] - current_pos.y
+        dz = TARGET_POS[2] - current_pos.z
+        diff = math.sqrt(dx**2 + dy**2 + dz**2)
+
+        if diff / self.action_distance_diff < ACTION_THRESHOLD:
+            return True
+
+        return False
 
     def moving_callback(self):
-        pass
+        # check if the action is reaching the threshold
+        tf_buffer = Buffer()
+        TransformListener(tf_buffer)
 
-def main():
-    rospy.init_node('fsm_action_move')
-    acion_move_fsm_instance = ActionMoveFSM()
+        self.source_pos, _ = get_link_pos(tf_buffer)
+        with TARGET_POS_MUTEX:
+            self.target_pos = TARGET_POS
 
-    # Subscribe the topic of posting event to all FSM.
-    rospy.Subscriber("event_publish", EventPublish, partial(event_receive_callback, acion_move_fsm_instance))
-    rospy.spin()
+        rate = rospy.Rate(10)
+        while not self._if_reach_threshold(tf_buffer):
+            rate.sleep()
 
-
-if __name__ == '__main__':
-    main()
+        # Set tag as True.
+        global ACTION_REACH_THRESHOLD
+        ACTION_REACH_THRESHOLD.set()
+        return
