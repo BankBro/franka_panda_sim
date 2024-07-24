@@ -35,6 +35,8 @@ ACTION_THRESHOLD = 0.35  # An action is considered reached threshold when:
                          #   the current position and the target position
                          #   is less than the value of ACTION_THRESHOLD.
 
+REFERENCE_FRAME = "world"
+END_EFFECTOR_FRAME = "panda_grip_center"
 
 class TFManager:
     _instance = None
@@ -51,7 +53,7 @@ class TFManager:
             self.tf_listener = TransformListener(self.tf_buffer)
             self._initialized = True
 
-    def get_link_pos(self, reference_frame, end_effector_link):
+    def get_link_pos(self, reference_frame=REFERENCE_FRAME, end_effector_link=END_EFFECTOR_FRAME):
         try:
             trans = self.tf_buffer.lookup_transform(reference_frame,
                                                     end_effector_link,
@@ -66,9 +68,9 @@ class TFManager:
             rospy.logwarn(f"Failed to lookup transform of \"{self.end_effector_link}\".")
             return None, None
     
-    def get_euler_from_quaternion(orientation):
-        euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w)
-        return euler
+    def get_euler_from_quaternion(orientation) -> list:
+        euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w, axes='rxyz')
+        return euler  # [roll, pitch, yaw]
 
 def if_event_valid(fsm_instance, event):
     """

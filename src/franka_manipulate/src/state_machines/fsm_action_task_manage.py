@@ -37,6 +37,7 @@ class ActionTaskManageFSM():
     def __init__(self, event_manager: EventManager):
         self.name = "action_task_manage"
         self.event_manager = event_manager
+        self.tf_manager = TFManager()
 
         # iniit fsm
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
@@ -68,7 +69,7 @@ class ActionTaskManageFSM():
         # fetch action
         response: FetchSingleActionResponse = self.fetch_action_service()
         fetch_ret = response.fetch_ret
-        action = response.action  # list
+        action = response.action  # a list of pos and euler
         queue_size = response.queue_size
 
         # Check if queue is empty.
@@ -79,11 +80,12 @@ class ActionTaskManageFSM():
         # fetch an action succeed
         global SOURCE_POS
         with SOURCE_POS_MUTEX:
-            SOURCE_POS = get_link_pos(tf_buffer)
+            current_pos = self.tf_manager.get_link_pos(REFERENCE_FRAME, END_EFFECTOR_FRAME)
+            SOURCE_POS = [current_pos[0], current_pos[1], current_pos[2]]
 
         global TARGET_POS
         with TARGET_POS_MUTEX:
-            TARGET_POS = action
+            TARGET_POS = [action[0], action[1], action[2]]
 
         if fetch_ret and queue_size > 0:
             self.event_manager.put_event_in_queue('fetch_ok_queue_remain')

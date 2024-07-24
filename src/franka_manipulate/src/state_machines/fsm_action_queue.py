@@ -20,10 +20,12 @@ class ActionQueueFSM():
     def __init__(self, event_manager: EventManager):
         self.name = "action_queue"
         self.event_manager = event_manager
+        self.tf_manager = TFManager()
 
         PREDICT_ACTION_DONE.clear()
         CLEAR_ACTION_QUEUE_DONE.clear()
 
+        # iniit fsm
         self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
         # define each callback function while entering each state
         self.machine.on_enter_init(self.init_callback)

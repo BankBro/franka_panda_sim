@@ -8,7 +8,7 @@ import moveit_commander
 from geometry_msgs.msg import PoseStamped
 from franka_manipulate.srv import MoveitPosCtl, MoveitPosCtlRequest, MoveitPosCtlResponse
 
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from tf.transformations import quaternion_from_euler
 
 
 class MoveitPositionController:
@@ -54,7 +54,10 @@ class MoveitPositionController:
         target_pose.pose.position.y = request.y
         target_pose.pose.position.z = request.z
 
-        quaternion = quaternion_from_euler(request.yaw, request.pitch, request.roll, axes='sxyz')
+        # 'sxyz': static frame
+        # 'rxyz': rotating frame
+        # http://docs.ros.org/en/jade/api/tf/html/python/transformations.html
+        quaternion = quaternion_from_euler(request.roll, request.pitch, request.yaw, axes='rxyz')
         target_pose.pose.orientation.x = quaternion[0]
         target_pose.pose.orientation.y = quaternion[1]
         target_pose.pose.orientation.z = quaternion[2]
