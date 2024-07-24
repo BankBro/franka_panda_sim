@@ -3,6 +3,12 @@
 from common import *
 from event_master_2 import EventManager
 
+from franka_predict_action.srv import (
+    StoreNewActionToQueue,
+    StoreNewActionToQueueRequest,
+    StoreNewActionToQueueResponse,
+)
+
 
 states = ['init', 'predict_store_action', 'clear_queue']
 
@@ -32,19 +38,38 @@ class ActionQueueFSM():
         self.machine.on_enter_predict_store_action(self.predict_store_action_callback)
         self.machine.on_enter_clear_queue(self.clear_queue_callback)
 
+        self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
+        # TODO: add a service to clear queue
+        # self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
+
     def init_callback(self):
         pass
 
     def predict_store_action_callback(self):
+        global DURING_PREDICT_ACTION
+
         with DURING_PREDICT_ACTION_MUTEX:
             DURING_PREDICT_ACTION = True
         
         # TODO: start to predict and store action
+        request = StoreNewActionToQueueRequest()
+        request.model_name = "openvla"
+        request.instruction = instruction
+        request.unnorm_key = unnorm_key
+
+        response: StoreNewActionToQueueResponse = self.predict_store_action(request)
+
+        if response.store_ret:
+            self.event_manager.put_event_in_queue('predict_action_succeed')
+        else:
+            self.event_manager.put_event_in_queue('predict_action_failed')
         
         # finish predict and store action to queue
         with DURING_PREDICT_ACTION_MUTEX:
-                DURING_PREDICT_ACTION = False
-        self.event_manager.put_event_in_queue('...')
+            DURING_PREDICT_ACTION = False
+
+        global PREDICT_ACTION_DONE
+        PREDICT_ACTION_DONE.set()
         return
         
 
@@ -53,17 +78,6 @@ class ActionQueueFSM():
         # TODO: clear queue
 
         # clear queue done
+        global CLEAR_ACTION_QUEUE_DONE
         CLEAR_ACTION_QUEUE_DONE.set()
         return
-
-# def main():
-#     rospy.init_node('fsm_action_queue')
-#     acion_queue_fsm_instance = ActionQueueFSM()
-
-#     # Subscribe the topic of posting event to all FSM.
-#     rospy.Subscriber("event_publish", EventPublish, partial(event_receive_callback, acion_queue_fsm_instance))
-#     rospy.spin()
-
-
-# if __name__ == '__main__':
-#     main()
