@@ -35,6 +35,8 @@ class ActionQueueManage():
         rospy.Service(rospy.get_param("store_new_action"), StoreNewActionToQueue, self.handle_store_new_action)
         rospy.Service(rospy.get_param("fetch_single_action"), FetchSingleAction, self.handle_fetch_single_action)
 
+        # TODO: add a service to clear queue
+
     @staticmethod
     def get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:
         action_list = []
