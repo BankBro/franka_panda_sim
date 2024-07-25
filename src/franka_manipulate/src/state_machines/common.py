@@ -16,9 +16,9 @@ from tf2_ros import (
 )
 
 from franka_manipulate.srv import (
-    ExecUsrCmd,
-    ExecUsrCmdRequest,
-    ExecUsrCmdResponse
+    ExecUsrReq,
+    ExecUsrReqRequest,
+    ExecUsrReqResponse
 )
 
 
@@ -104,7 +104,7 @@ def send_event_to_fsm(fsm_instance, event: str):
         )
     return
 
-def _timer_callback():
+def _exec_usr_req_timer_callback():
     global USR_REQ_DONE
     USR_REQ_DONE.set()
     return
@@ -119,9 +119,9 @@ def _set_usr_req_info(model_name, instruction, unnorm_key):
         REQ_INSTRUCTION = instruction
         REQ_UNNORM_KEY = unnorm_key
 
-def exec_usr_cmd_callback(request: ExecUsrCmdRequest, event_manager: EventManager):
-    # set a timer, when time out, stop exec user cmd
-    timer = threading.Timer(MAX_EXEC_TIME, _timer_callback)
+def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManager):
+    # Set a timer, when timeout, stop execute user command.
+    timer = threading.Timer(MAX_EXEC_TIME, _exec_usr_req_timer_callback)
     timer.start()
 
     _set_usr_req_info(request.model_name, request.instruction, request.unnorm_key)
@@ -134,4 +134,5 @@ def exec_usr_cmd_callback(request: ExecUsrCmdRequest, event_manager: EventManage
     _set_usr_req_info(None, None, None)
     rospy.loginfo(f"User request has been done, model({request.model_name}), "
                   f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
-    return
+    
+    return ExecUsrReqResponse(True)
