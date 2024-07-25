@@ -6,17 +6,6 @@ import threading
 
 from common import send_event_to_fsm
 
-# class Listener:
-#     def __init__(self, name: str, handle_event: Callable):
-#         """
-#         Initialize a Listener object.
-
-#         :param name: A string representing the name of the listener.
-#         :param handle_event: A callable function that will be invoked when an event broadcasted.
-#         """
-#         self.name = name
-#         self.handle_event = handle_event
-
 
 class EventManager():
     def __init__(self):

@@ -15,7 +15,11 @@ from tf2_ros import (
     ExtrapolationException
 )
 
-from franka_manipulate.srv import ExecUsrCmd, ExecUsrCmdRequest, ExecUsrCmdResponse
+from franka_manipulate.srv import (
+    ExecUsrCmd,
+    ExecUsrCmdRequest,
+    ExecUsrCmdResponse
+)
 
 
 MAX_EXEC_TIME = 30
