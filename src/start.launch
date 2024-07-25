@@ -1,0 +1,5 @@
+<launch>
+  <include file="$(find franka_gazebo)/launch/bringup_moveit.launch"/>
+  <include file="$(find franka_predict_action)/launch/predict_store_action.launch"/>
+  <include file="$(find franka_manipulate)/launch/action_manage.launch"/>
+</launch>
