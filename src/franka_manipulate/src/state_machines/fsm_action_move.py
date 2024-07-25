@@ -14,18 +14,27 @@ transitions = [
     {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
 ]
 
-class ActionMoveFSM():
-    def __init__(self):
+class ActionMoveFSM(ThreadedStateMachine):
+    def __init__(self, event_manager: EventManager):
+        states = ['init', 'moving']
+        transitions = [
+            {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
+            {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
+            {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
+            {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
+        ]
+        initial_state = "init"
+        super().__init__(states, transitions, initial_state)
+
         self.name = "action_move"
         self.reference_frame = "world"
         self.end_effector_link = "panda_grip_center"
         self.action_distance = None
         self.tf_manager = TFManager()
+        self.event_manager = event_manager
 
         ACTION_REACH_THRESHOLD.clear()
 
-        # iniit fsm
-        self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
         # define each callback function while entering each state
         self.machine.on_enter_init(self.init_callback)
         self.machine.on_enter_moving(self.moving_callback)

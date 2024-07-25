@@ -11,11 +11,11 @@ def main():
     rospy.init_node("fsm_start")
     USR_REQ_DONE.clear()
     
-    acion_task_manage_fsm_instance = ActionTaskManageFSM()
-    acion_move_fsm_instance = ActionMoveFSM()
-    acion_queue_fsm_instance = ActionQueueFSM()
+    event_manager = EventManager()# TODO: 改成单例模式？
+    acion_task_manage_fsm_instance = ActionTaskManageFSM(event_manager)
+    acion_move_fsm_instance = ActionMoveFSM(event_manager)
+    acion_queue_fsm_instance = ActionQueueFSM(event_manager)
 
-    event_manager = EventManager()
     event_manager.register_listener(acion_task_manage_fsm_instance)
     event_manager.register_listener(acion_move_fsm_instance)
     event_manager.register_listener(acion_queue_fsm_instance)

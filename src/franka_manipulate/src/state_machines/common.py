@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import queue
 import threading
 from transitions import Machine, MachineError
 from tf.transformations import euler_from_quaternion
@@ -83,6 +84,46 @@ class TFManager:
     def get_euler_from_quaternion(orientation) -> list:
         euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w, axes='rxyz')
         return euler  # [roll, pitch, yaw]
+
+
+class ThreadedStateMachine:
+    def __init__(self, states, transitions, initial_state):
+        self.event_queue = queue.Queue()
+        self.trigger_mutex = threading.Lock()
+
+        self.machine = Machine(
+            model=self,
+            states=states,
+            transitions=transitions,
+            initial=initial_state
+        )
+
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+    
+    def _run(self):
+        while True:
+            event = self.event_queue.get()
+            if event is None:
+                break
+
+            with self.trigger_mutex:
+                self.trigger(event)
+        return
+    
+    def trigger(self, event: str):
+        try:
+            getattr(self, event)()
+        except AttributeError:
+            pass
+        return
+    def trigger_event(self, event: str):
+        self.event_queue.put(event)
+    
+    def stop(self):
+        self.event_queue.put(None)
+        self.thread.join()
+
 
 def _if_event_valid(fsm_instance, event):
     """
