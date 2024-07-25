@@ -57,9 +57,10 @@ class ActionQueueFSM():
         
         # TODO: start to predict and store action
         request = StoreNewActionToQueueRequest()
-        request.model_name = "openvla"
-        request.instruction = instruction
-        request.unnorm_key = unnorm_key
+        with REQ_INFO_MUTEX:
+            request.model_name = REQ_MODEL_NAME
+            request.instruction = REQ_INSTRUCTION
+            request.unnorm_key = REQ_UNNORM_KEY
 
         response: StoreNewActionToQueueResponse = self.predict_store_action(request)
 

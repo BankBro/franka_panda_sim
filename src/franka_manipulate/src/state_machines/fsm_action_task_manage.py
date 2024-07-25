@@ -94,13 +94,11 @@ class ActionTaskManageFSM():
         return
 
     def check_continue_callback(self):
-        # TODO: add new thread to check if the action is need to continue
-        # or add other global param to tag this status
-        with REQUEST_TO_CONTINUE_MUTEX:
-            if REQUEST_TO_CONTINUE:
-                self.event_manager.put_event_in_queue('keep_exec')
-            else:
-                self.event_manager.put_event_in_queue('stop_exec')
+        if USR_REQ_DONE.is_set():
+            # User's request has been done, fsm stop working.
+            self.event_manager.put_event_in_queue('stop_exec')
+        else:
+            self.event_manager.put_event_in_queue('keep_exec')
         return
 
     def exec_action_callback(self):

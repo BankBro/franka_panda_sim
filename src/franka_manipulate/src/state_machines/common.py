@@ -3,8 +3,9 @@
 import rospy
 import threading
 from transitions import Machine, MachineError
-
 from tf.transformations import euler_from_quaternion
+
+from event_master import EventManager
 
 from tf2_ros import (
     Buffer,
@@ -14,14 +15,28 @@ from tf2_ros import (
     ExtrapolationException
 )
 
+from franka_manipulate.srv import ExecUsrCmd, ExecUsrCmdRequest, ExecUsrCmdResponse
 
-REQUEST_TO_CONTINUE = False
-REQUEST_TO_CONTINUE_MUTEX = threading.Lock()
+
+MAX_EXEC_TIME = 30
+ACTION_THRESHOLD = 0.35  # An action is considered reached threshold when:
+                         # - The percentage of the distance between
+                         #   the current position and the target position
+                         #   is less than the value of ACTION_THRESHOLD.
+
+REFERENCE_FRAME = "world"
+END_EFFECTOR_FRAME = "panda_grip_center"
+
+REQ_MODEL_NAME = None
+REQ_INSTRUCTION = None
+REQ_UNNORM_KEY = None
+REQ_INFO_MUTEX = threading.Lock()
 
 DURING_PREDICT_ACTION = False
 DURING_PREDICT_ACTION_MUTEX = threading.Lock()
 
-PREDICT_ACTION_DONE = threading.Event()  # default: False
+USR_REQ_DONE = threading.Event()  # default: False
+PREDICT_ACTION_DONE = threading.Event()
 ACTION_REACH_THRESHOLD = threading.Event()
 CLEAR_ACTION_QUEUE_DONE = threading.Event()
 
@@ -30,13 +45,6 @@ TARGET_POS = []
 SOURCE_POS_MUTEX = threading.Lock()
 TARGET_POS_MUTEX = threading.Lock()
 
-ACTION_THRESHOLD = 0.35  # An action is considered reached threshold when:
-                         # - The percentage of the distance between
-                         #   the current position and the target position
-                         #   is less than the value of ACTION_THRESHOLD.
-
-REFERENCE_FRAME = "world"
-END_EFFECTOR_FRAME = "panda_grip_center"
 
 class TFManager:
     _instance = None
@@ -72,7 +80,7 @@ class TFManager:
         euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w, axes='rxyz')
         return euler  # [roll, pitch, yaw]
 
-def if_event_valid(fsm_instance, event):
+def _if_event_valid(fsm_instance, event):
     """
     To check if the event is in the state machine.
     """
@@ -80,7 +88,7 @@ def if_event_valid(fsm_instance, event):
 
 def send_event_to_fsm(fsm_instance, event: str):
     # if event is not one of FSM's trigger event.
-    if not if_event_valid(fsm_instance, event):
+    if not _if_event_valid(fsm_instance, event):
         rospy.logwarn(f"event({event}) is not valid for FSM({fsm_instance.name})")
         return
 
@@ -90,4 +98,36 @@ def send_event_to_fsm(fsm_instance, event: str):
         rospy.logwarn(
             f"event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})"
         )
+    return
+
+def _timer_callback():
+    global USR_REQ_DONE
+    USR_REQ_DONE.set()
+    return
+
+def _set_usr_req_info(model_name, instruction, unnorm_key):
+    global REQ_MODEL_NAME
+    global REQ_INSTRUCTION
+    global REQ_UNNORM_KEY
+
+    with REQ_INFO_MUTEX:
+        REQ_MODEL_NAME = model_name
+        REQ_INSTRUCTION = instruction
+        REQ_UNNORM_KEY = unnorm_key
+
+def exec_usr_cmd_callback(request: ExecUsrCmdRequest, event_manager: EventManager):
+    # set a timer, when time out, stop exec user cmd
+    timer = threading.Timer(MAX_EXEC_TIME, _timer_callback)
+    timer.start()
+
+    _set_usr_req_info(request.model_name, request.instruction, request.unnorm_key)
+    event_manager.put_event_in_queue("usr_req")
+
+    # wait for usr req done
+    USR_REQ_DONE.wait()
+    USR_REQ_DONE.clear()
+
+    _set_usr_req_info(None, None, None)
+    rospy.loginfo(f"User request has been done, model({request.model_name}), "
+                  f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
     return
