@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
 from common import *
-from event_master_2 import EventManager
+from event_master import EventManager
 
 from franka_predict_action.srv import (
     StoreNewActionToQueue,
     StoreNewActionToQueueRequest,
     StoreNewActionToQueueResponse,
+)
+from franka_predict_action.srv import (
+    ClearActionQueue,
+    ClearActionQueueResponse,
 )
 
 
@@ -38,9 +42,9 @@ class ActionQueueFSM():
         self.machine.on_enter_predict_store_action(self.predict_store_action_callback)
         self.machine.on_enter_clear_queue(self.clear_queue_callback)
 
+        # subscribe services
         self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
-        # TODO: add a service to clear queue
-        # self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
+        self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
 
     def init_callback(self):
         pass
@@ -74,10 +78,12 @@ class ActionQueueFSM():
         
 
     def clear_queue_callback(self):
+        response: ClearActionQueueResponse = self.clear_action_queue()
 
-        # TODO: clear queue
+        if response.clear_ret:
+            self.event_manager.put_event_in_queue('clear_queue_done')
 
-        # clear queue done
-        global CLEAR_ACTION_QUEUE_DONE
-        CLEAR_ACTION_QUEUE_DONE.set()
+            # clear queue done
+            global CLEAR_ACTION_QUEUE_DONE
+            CLEAR_ACTION_QUEUE_DONE.set()
         return

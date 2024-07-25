@@ -19,6 +19,10 @@ from franka_predict_action.srv import (
     FetchSingleAction,
     FetchSingleActionResponse,
 )
+from franka_predict_action.srv import (
+    ClearActionQueue,
+    ClearActionQueueResponse,
+)
 
 
 class ActionQueueManage():
@@ -32,13 +36,12 @@ class ActionQueueManage():
         )
 
         # Publish service.
-        rospy.Service(rospy.get_param("store_new_action"), StoreNewActionToQueue, self.handle_store_new_action)
-        rospy.Service(rospy.get_param("fetch_single_action"), FetchSingleAction, self.handle_fetch_single_action)
-
-        # TODO: add a service to clear queue
+        rospy.Service(rospy.get_param("store_new_action"), StoreNewActionToQueue, self._handle_store_new_action)
+        rospy.Service(rospy.get_param("fetch_single_action"), FetchSingleAction, self._handle_fetch_single_action)
+        rospy.Service("clear_action_queue_service", ClearActionQueue, self._handle_clear_action_queue)
 
     @staticmethod
-    def get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:
+    def _get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:
         action_list = []
 
         for i in range(action_shape[0]):
@@ -46,7 +49,7 @@ class ActionQueueManage():
 
         return action_list
 
-    def get_predict_action(self, model_name: str, instruction: str, unnorm_key: str) -> Tuple[bool, list]:
+    def _get_predict_action(self, model_name: str, instruction: str, unnorm_key: str) -> Tuple[bool, list]:
         request = PredictActionRequest()
         request.model_name = model_name
         request.instruction = instruction
@@ -63,7 +66,7 @@ class ActionQueueManage():
         if predict_succeed:
             action_shape = response.action_shape
             action_flat = response.action_flat
-            action_list = ActionQueueManage.get_action_list_from_flatten(action_shape, action_flat)
+            action_list = ActionQueueManage._get_action_list_from_flatten(action_shape, action_flat)
 
         else:
             rospy.logerr(
@@ -74,13 +77,13 @@ class ActionQueueManage():
 
         return predict_succeed, action_list
 
-    def handle_store_new_action(self, request: StoreNewActionToQueueRequest):
+    def _handle_store_new_action(self, request: StoreNewActionToQueueRequest):
         model_name = request.model_name
         instruction = request.instruction
         unnorm_key = request.unnorm_key
         response = StoreNewActionToQueueResponse()
 
-        _, action_list = self.get_predict_action(model_name, instruction, unnorm_key)
+        _, action_list = self._get_predict_action(model_name, instruction, unnorm_key)
         if action_list is None:
             rospy.logerr(f"Store new action failed!")
             response.store_ret = False
@@ -101,7 +104,7 @@ class ActionQueueManage():
 
         return response
 
-    def handle_fetch_single_action(self):
+    def _handle_fetch_single_action(self):
         response = FetchSingleActionResponse()
 
         self.action_queue_mutex.acquire()
@@ -118,6 +121,16 @@ class ActionQueueManage():
         
         self.action_queue_mutex.release()
 
+        return response
+    
+    def _handle_clear_action_queue(self):
+
+        self.action_queue_mutex.acquire()
+        self.action_queue.queue.clear()
+        self.action_queue_mutex.release()
+
+        response = ClearActionQueueResponse()
+        response.clear_ret = True
         return response
 
 

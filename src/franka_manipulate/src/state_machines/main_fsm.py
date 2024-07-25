@@ -2,7 +2,7 @@
 
 import rospy
 
-from event_master_2 import EventManager
+from event_master import EventManager
 
 from fsm_action_task_manage import ActionTaskManageFSM
 from fsm_action_move import ActionMoveFSM

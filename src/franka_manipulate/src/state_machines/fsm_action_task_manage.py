@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from event_master_2 import EventManager
+from event_master import EventManager
 from common import *
 
 from franka_predict_action.srv import (

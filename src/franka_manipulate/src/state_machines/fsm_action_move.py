@@ -2,7 +2,7 @@
 
 import math
 from common import *
-from event_master_2 import EventManager
+from event_master import EventManager
 
 
 states = ['init', 'moving']
