@@ -114,6 +114,7 @@ class ActionTaskManageFSM():
         request.pitch = action[4]
         request.roll = action[5]
 
+        rospy.wait_for_service("moveit_pos_ctl_service")
         response: MoveitPosCtlResponse = self.exec_action(request)
         if not response.go_ret:
             self.event_manager.put_event_in_queue("exec_action_failed")

@@ -1,0 +1,3 @@
+<launch>
+  <node name="usr_req_node" pkg="franka_manipulate" type="usr_req.py"/>
+</launch>
