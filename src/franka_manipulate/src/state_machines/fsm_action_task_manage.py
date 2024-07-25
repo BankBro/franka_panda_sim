@@ -67,6 +67,7 @@ class ActionTaskManageFSM():
                 return
 
         # fetch action
+        rospy.wait_for_service("fetch_single_action")
         response: FetchSingleActionResponse = self.fetch_action_service()
         fetch_ret = response.fetch_ret
         action = response.action  # a list of pos and euler

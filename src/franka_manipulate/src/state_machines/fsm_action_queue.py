@@ -62,6 +62,7 @@ class ActionQueueFSM():
             request.instruction = REQ_INSTRUCTION
             request.unnorm_key = REQ_UNNORM_KEY
 
+        rospy.wait_for_service("store_new_action_to_queue_service")
         response: StoreNewActionToQueueResponse = self.predict_store_action(request)
 
         if response.store_ret:
@@ -79,6 +80,7 @@ class ActionQueueFSM():
         
 
     def clear_queue_callback(self):
+        rospy.wait_for_service("clear_action_queue_service")
         response: ClearActionQueueResponse = self.clear_action_queue()
 
         if response.clear_ret:

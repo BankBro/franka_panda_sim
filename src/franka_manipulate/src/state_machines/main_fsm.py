@@ -20,6 +20,7 @@ def main():
     event_manager.register_listener(acion_move_fsm_instance)
     event_manager.register_listener(acion_queue_fsm_instance)
 
+    # publish services
     rospy.Service("exec_usr_req_service", ExecUsrReq, exec_usr_req_callback, event_manager)
     rospy.spin()
 
