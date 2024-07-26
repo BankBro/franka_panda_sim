@@ -2,5 +2,5 @@
   <node name="moveit_pos_ctl_server" pkg="franka_manipulate" type="moveit_pos_ctl_server.py" output="screen"/>
   <node name="fsm_action_server" pkg="franka_manipulate" type="main_fsm.py" output="screen"/>
 
-  <!-- <node name="usr_req_node" pkg="franka_manipulate" type="usr_req.py" output="screen"/> -->
+  <node name="usr_req_node" pkg="franka_manipulate" type="usr_req.py" output="screen"/>
 </launch>

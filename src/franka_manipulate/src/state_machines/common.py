@@ -125,26 +125,6 @@ class ThreadedStateMachine:
         self.thread.join()
 
 
-def _if_event_valid(fsm_instance, event):
-    """
-    To check if the event is in the state machine.
-    """
-    return any(transition['trigger'] == event for transition in fsm_instance.machine.get_transitions())
-
-def send_event_to_fsm(fsm_instance, event: str):
-    # if event is not one of FSM's trigger event.
-    if not _if_event_valid(fsm_instance, event):
-        rospy.logwarn(f"event({event}) is not valid for FSM({fsm_instance.name})")
-        return
-
-    try:
-        fsm_instance.trigger(event)
-    except MachineError as e:
-        rospy.logwarn(
-            f"event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})"
-        )
-    return
-
 def _exec_usr_req_timer_callback():
     global USR_REQ_DONE
     USR_REQ_DONE.set()
