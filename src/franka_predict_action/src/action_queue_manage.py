@@ -31,14 +31,14 @@ class ActionQueueManage():
         self.action_queue_mutex = threading.Lock()
 
         # Subscribe service of action prediction, to get and store predict actions.
-        self.predict_action_service = rospy.ServiceProxy(
-            rospy.get_param("~prediction_service"), PredictAction
-        )
+        self.predict_action_service = rospy.ServiceProxy(rospy.get_param("~prediction_service"), PredictAction)
 
         # Publish service.
-        rospy.Service(rospy.get_param("store_new_action"), StoreNewActionToQueue, self._handle_store_new_action)
-        rospy.Service(rospy.get_param("fetch_single_action"), FetchSingleAction, self._handle_fetch_single_action)
+        rospy.Service(rospy.get_param("~store_new_action"), StoreNewActionToQueue, self._handle_store_new_action)
+        rospy.Service(rospy.get_param("~fetch_single_action"), FetchSingleAction, self._handle_fetch_single_action)
         rospy.Service("clear_action_queue_service", ClearActionQueue, self._handle_clear_action_queue)
+
+        rospy.loginfo("Action queue manage is ready!")
 
     @staticmethod
     def _get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:

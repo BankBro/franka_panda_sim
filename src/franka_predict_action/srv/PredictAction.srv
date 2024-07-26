@@ -5,5 +5,5 @@ string unnorm_key   # the dataset of the scene
 ---
 
 bool predict_ret         # result of prediction
-float16[] action_flat     # the flatten predicted action
+float32[] action_flat     # the flatten predicted action
 uint8[] action_shape      # the shape of the predicted action: [num_action, action_dim]

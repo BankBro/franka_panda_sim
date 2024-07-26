@@ -1,16 +1,15 @@
 <launch>
   <!-- Start the action server -->
-  <node name="predict_action_server" pkg="franka_predict_action" type="predict_action_server.py">
+  <node name="predict_action_server" pkg="franka_predict_action" type="predict_action_server.py" output="screen">
     <!-- Server address -->
     <param name="server_address" value="http://192.168.10.8:8000/act" />
     <!-- Camara Topic -->
     <param name="third_view_rgb" value="/third_view_camera/rgb/image_raw" />
-    <!-- Service -->
-    <param name="prediction_service" value="/predict_action_by_model_service" />
   </node>
 
-  <node name="action_queue_manage" pkg="franka_predict_action" type="action_queue_manage.py">
+  <node name="action_queue_manage" pkg="franka_predict_action" type="action_queue_manage.py" output="screen">
     <!-- Services -->
+    <param name="prediction_service" value="predict_action_by_model_service" />
     <param name="store_new_action" value="store_new_action_to_queue_service" />
     <param name="fetch_single_action" value="fetch_single_action_from_queue_service" />
   </node>
