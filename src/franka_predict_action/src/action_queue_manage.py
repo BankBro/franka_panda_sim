@@ -38,7 +38,7 @@ class ActionQueueManage():
         rospy.Service(rospy.get_param("~fetch_single_action"), FetchSingleAction, self._handle_fetch_single_action)
         rospy.Service("clear_action_queue_service", ClearActionQueue, self._handle_clear_action_queue)
 
-        rospy.loginfo("Action queue manage is ready!")
+        rospy.loginfo("Action queue manage is ready.")
 
     @staticmethod
     def _get_action_list_from_flatten(action_shape: list, action_flat: list) -> list:

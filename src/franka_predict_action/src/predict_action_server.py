@@ -27,6 +27,7 @@ class ImageSubscriber():
         # Subscribe to the image topic.
         self.subscribe_topic = rospy.get_param("~third_view_rgb")
         rospy.Subscriber(self.subscribe_topic, RosImage, self.handle_third_view_image)
+        rospy.loginfo(f"Subscribed to {self.subscribe_topic}")
 
     def handle_third_view_image(self, rgb_image: RosImage):
         self.img_mutex.acquire()
@@ -54,6 +55,7 @@ class PredictActionServer():
         }
         self.predict_action = rospy.get_param("~prediction_service")
         rospy.Service(self.predict_action, PredictAction, self.handle_predict_action)
+        rospy.loginfo(f"Prediction action service{self.predict_action} is ready.")
 
     def handle_predict_action(self, request: PredictActionRequest) -> PredictActionResponse:
         model_name = request.model_name
