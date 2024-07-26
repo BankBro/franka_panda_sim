@@ -5,15 +5,6 @@ from common import *
 from event_master import EventManager
 
 
-states = ['init', 'moving']
-
-transitions = [
-    {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
-    {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
-    {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
-    {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
-]
-
 class ActionMoveFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
         states = ['init', 'moving']
@@ -30,14 +21,15 @@ class ActionMoveFSM(ThreadedStateMachine):
         self.reference_frame = "world"
         self.end_effector_link = "panda_grip_center"
         self.action_distance = None
-        self.tf_manager = TFManager()
         self.event_manager = event_manager
+        self.tf_manager = TFManager()
 
         ACTION_REACH_THRESHOLD.clear()
 
         # define each callback function while entering each state
         self.machine.on_enter_init(self.init_callback)
         self.machine.on_enter_moving(self.moving_callback)
+        return
 
     def init_callback(self):
         return

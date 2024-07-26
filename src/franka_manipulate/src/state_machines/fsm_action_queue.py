@@ -14,20 +14,21 @@ from franka_predict_action.srv import (
 )
 
 
-states = ['init', 'predict_store_action', 'clear_queue']
-
-transitions = [
-    {'trigger': 'fetch_ok_queue_remain',  'source': 'init',                 'dest': 'predict_store_action'},
-    {'trigger': 'queue_empty',            'source': 'init',                 'dest': 'predict_store_action'},
-    {'trigger': 'predict_action_succeed', 'source': 'predict_store_action', 'dest': 'init'},
-    {'trigger': 'predict_action_failed',  'source': 'predict_store_action', 'dest': 'init'},
-    {'trigger': 'exec_action_failed',     'source': 'init',                 'dest': 'clear_queue'},
-    {'trigger': 'stop_exec',              'source': 'init',                 'dest': 'clear_queue'},
-    {'trigger': 'clear_queue_done',       'source': 'clear_queue',          'dest': 'init'},
-]
-
-class ActionQueueFSM():
+class ActionQueueFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
+        states = ['init', 'predict_store_action', 'clear_queue']
+        transitions = [
+            {'trigger': 'fetch_ok_queue_remain',  'source': 'init',                 'dest': 'predict_store_action'},
+            {'trigger': 'queue_empty',            'source': 'init',                 'dest': 'predict_store_action'},
+            {'trigger': 'predict_action_succeed', 'source': 'predict_store_action', 'dest': 'init'},
+            {'trigger': 'predict_action_failed',  'source': 'predict_store_action', 'dest': 'init'},
+            {'trigger': 'exec_action_failed',     'source': 'init',                 'dest': 'clear_queue'},
+            {'trigger': 'stop_exec',              'source': 'init',                 'dest': 'clear_queue'},
+            {'trigger': 'clear_queue_done',       'source': 'clear_queue',          'dest': 'init'},
+        ]
+        initial_state = "init"
+        super().__init__(states, transitions, initial_state)
+
         self.name = "action_queue"
         self.event_manager = event_manager
         self.tf_manager = TFManager()
@@ -35,8 +36,6 @@ class ActionQueueFSM():
         PREDICT_ACTION_DONE.clear()
         CLEAR_ACTION_QUEUE_DONE.clear()
 
-        # iniit fsm
-        self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
         # define each callback function while entering each state
         self.machine.on_enter_init(self.init_callback)
         self.machine.on_enter_predict_store_action(self.predict_store_action_callback)
@@ -45,9 +44,10 @@ class ActionQueueFSM():
         # subscribe services
         self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
         self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
+        return
 
     def init_callback(self):
-        pass
+        return
 
     def predict_store_action_callback(self):
         global DURING_PREDICT_ACTION
