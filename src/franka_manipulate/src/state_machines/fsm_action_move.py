@@ -61,7 +61,7 @@ class ActionMoveFSM(ThreadedStateMachine):
                 self.action_distance = ActionMoveFSM._get_distance(SOURCE_POS, TARGET_POS)
 
         rate = rospy.Rate(10)
-        while True:
+        while not rospy.is_shutdown():
             # check if the action is reaching the threshold
             if self._if_reach_threshold():
                 # Set tag as True.

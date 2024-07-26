@@ -102,7 +102,7 @@ class ThreadedStateMachine:
         self.thread.start()
     
     def _run(self):
-        while True:
+        while not rospy.is_shutdown():
             event = self.event_queue.get()
             if event is None:
                 break
