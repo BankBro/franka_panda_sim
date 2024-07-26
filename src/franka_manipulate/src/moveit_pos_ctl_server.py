@@ -78,6 +78,7 @@ class MoveitPositionController:
 
 
 if __name__ == "__main__":
+    rospy.sleep(8)
     pos_ctl = MoveitPositionController()
     rospy.Service('moveit_pos_ctl_service', MoveitPosCtl, pos_ctl.arm_go_target_pos)
     rospy.loginfo("moveit_pos_ctl_service service is ready.")
