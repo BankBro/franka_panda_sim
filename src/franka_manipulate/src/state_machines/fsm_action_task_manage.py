@@ -43,7 +43,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         self.machine.on_enter_init(self.init_callback)
         self.machine.on_enter_fetch_action(self.fetch_action_callback)
         self.machine.on_enter_check_continue(self.check_continue_callback)
-        self.machine.on_enter_execute_action(self.exec_action_callback)
+        self.machine.on_enter_exec_action(self.exec_action_callback)
         self.machine.on_enter_predict_action(self.predict_action_callback)
         self.machine.on_enter_clear_action(self.clear_action_callback)
 

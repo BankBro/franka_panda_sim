@@ -53,20 +53,27 @@ CMAKE_BINARY_DIR = /project/franka_panda_sim_ws/build
 # Include the progress variables for this target.
 include franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus.dir/progress.make
 
+franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/ExecUsrReq.l
 franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/MoveitPosCtl.l
 franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/manifest.l
 
 
+/project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/ExecUsrReq.l: /opt/ros/noetic/lib/geneus/gen_eus.py
+/project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/ExecUsrReq.l: /project/franka_panda_sim_ws/src/franka_manipulate/srv/ExecUsrReq.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/project/franka_panda_sim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating EusLisp code from franka_manipulate/ExecUsrReq.srv"
+	cd /project/franka_panda_sim_ws/build/franka_manipulate && ../catkin_generated/env_cached.sh /bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /project/franka_panda_sim_ws/src/franka_manipulate/srv/ExecUsrReq.srv -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p franka_manipulate -o /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv
+
 /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/MoveitPosCtl.l: /opt/ros/noetic/lib/geneus/gen_eus.py
 /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/MoveitPosCtl.l: /project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/project/franka_panda_sim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating EusLisp code from franka_manipulate/MoveitPosCtl.srv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/project/franka_panda_sim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating EusLisp code from franka_manipulate/MoveitPosCtl.srv"
 	cd /project/franka_panda_sim_ws/build/franka_manipulate && ../catkin_generated/env_cached.sh /bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p franka_manipulate -o /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv
 
 /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/manifest.l: /opt/ros/noetic/lib/geneus/gen_eus.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/project/franka_panda_sim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating EusLisp manifest code for franka_manipulate"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/project/franka_panda_sim_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating EusLisp manifest code for franka_manipulate"
 	cd /project/franka_panda_sim_ws/build/franka_manipulate && ../catkin_generated/env_cached.sh /bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate franka_manipulate std_msgs
 
 franka_manipulate_generate_messages_eus: franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus
+franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/ExecUsrReq.l
 franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/MoveitPosCtl.l
 franka_manipulate_generate_messages_eus: /project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/manifest.l
 franka_manipulate_generate_messages_eus: franka_manipulate/CMakeFiles/franka_manipulate_generate_messages_eus.dir/build.make

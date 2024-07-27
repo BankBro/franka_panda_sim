@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "/project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/manifest.l"
+  "/project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/ExecUsrReq.l"
   "/project/franka_panda_sim_ws/devel/share/roseus/ros/franka_manipulate/srv/MoveitPosCtl.l"
   "CMakeFiles/franka_manipulate_generate_messages_eus"
 )
