@@ -30,11 +30,12 @@ class EventManager():
         if self.broadcast_thread and self.broadcast_thread.is_alive():
             self.broadcast_thread.join()
 
-    def register_listener(self, listener):
-        if listener not in self.listeners:
-            with self.listeners_mutex:
-                self.listeners.append(listener)
-            rospy.loginfo(f"Registered listener: {listener.name}")
+    def register_listener(self, listener_dict):
+        for name, listener in listener_dict.items():
+            if listener not in self.listeners:
+                with self.listeners_mutex:
+                    self.listeners.append(listener)
+                rospy.loginfo(f"Registered listener: {name}")
 
     def unregister_listener(self, listener):
         if listener in self.listeners:
