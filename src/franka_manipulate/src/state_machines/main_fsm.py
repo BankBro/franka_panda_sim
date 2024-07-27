@@ -9,7 +9,7 @@ from fsm_action_queue import ActionQueueFSM
 from typing import Dict
 
 
-def on_shotdown(event_manager: EventManager, fsm_dict: Dict[str, ActionTaskManageFSM]):
+def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, ActionTaskManageFSM]):
     for fsm in fsm_dict.values():
         fsm.stop()
 
@@ -29,9 +29,10 @@ def main():
     event_manager.register_listener(fsm_dict)
 
     # publish services
-    rospy.Service("exec_usr_req_service", ExecUsrReq, exec_usr_req_callback, event_manager)
+    rospy.Service("exec_usr_req_service", ExecUsrReq, lambda req: exec_usr_req_callback(req, event_manager))
+    rospy.loginfo("Service(exec_usr_req_service) start.")
 
-    rospy.on_shotdown(on_shotdown(event_manager, fsm_dict))
+    rospy.on_shutdown(on_shutdown(event_manager, fsm_dict))
     rospy.spin()
 
 

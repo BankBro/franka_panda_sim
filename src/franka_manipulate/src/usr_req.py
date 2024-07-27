@@ -14,7 +14,10 @@ def exec_usr_req(exec_usr_req_service):
     request.model_name = "openVLA"
     request.instruction = "Please put the red obj in the yellow box."
     request.unnorm_key = "bridge_orig"
-    exec_usr_req_service(request)
+    rospy.loginfo(f"Usr request({request}).")
+
+    ret = exec_usr_req_service(request)
+    rospy.loginfo(f"Usr request's ret({ret}).")
     return
 
 def main():

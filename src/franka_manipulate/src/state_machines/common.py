@@ -141,9 +141,11 @@ def _set_usr_req_info(model_name, instruction, unnorm_key):
         REQ_UNNORM_KEY = unnorm_key
 
 def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManager):
+    rospy.loginfo(f"Start exec usr req callback.")
     # Set a timer, when timeout, stop execute user command.
     timer = threading.Timer(MAX_EXEC_TIME, _exec_usr_req_timer_callback)
     timer.start()
+    rospy.loginfo(f"User request timer is ready, timeout({MAX_EXEC_TIME}s).")
 
     _set_usr_req_info(request.model_name, request.instruction, request.unnorm_key)
     event_manager.put_event_in_queue("usr_req")

@@ -5,6 +5,8 @@
     <param name="server_address" value="http://192.168.10.8:8000/act" />
     <!-- Camara Topic -->
     <param name="third_view_rgb" value="/third_view_camera/rgb/image_raw" />
+
+    <param name="prediction_service" value="predict_action_by_model_service" />
   </node>
 
   <node name="action_queue_manage" pkg="franka_predict_action" type="action_queue_manage.py" output="screen">
