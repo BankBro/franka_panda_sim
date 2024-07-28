@@ -12,7 +12,7 @@ class EventManager():
         self.broadcast_thread = None
 
         self._start()
-        rospy.loginfo("Event manager is ready.")
+        rospy.loginfo("Event master is ready.")
         return
 
     def _start(self):
@@ -32,7 +32,7 @@ class EventManager():
         self.running.clear()  # set flag as False
         if self.broadcast_thread and self.broadcast_thread.is_alive():
             self.broadcast_thread.join()
-            rospy.loginfo("Event manager exit.")
+            rospy.loginfo("Event master exit.")
         return
 
     def register_listener(self, listener_dict):
@@ -108,4 +108,5 @@ class EventManager():
             finally:
                 self.listeners_mutex.release()
                 self.event_queue.task_done()
+        rospy.loginfo("Event master exit.")
         return

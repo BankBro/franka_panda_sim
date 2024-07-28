@@ -183,4 +183,5 @@ def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, Type[ThreadedSt
         fsm.stop()
 
     event_manager.stop()
+    rospy.loginfo("Event master and all FSM has exited.")
     return
