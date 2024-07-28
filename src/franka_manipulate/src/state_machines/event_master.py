@@ -121,7 +121,6 @@ class EventManager():
                 rospy.loginfo("Broadcast occur error.")
 
             finally:
-                self.listeners_mutex.release()
                 self.event_queue.task_done()
         rospy.loginfo("Event master exit.")
         return
