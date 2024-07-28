@@ -5,6 +5,7 @@ import queue
 import threading
 from transitions import Machine, MachineError
 from tf.transformations import euler_from_quaternion
+from typing import Dict, Type
 
 from event_master import EventManager
 
@@ -88,6 +89,7 @@ class TFManager:
 
 class ThreadedStateMachine:
     def __init__(self, states, transitions, initial_state):
+        self.name = None
         self.event_queue = queue.Queue()
         self.trigger_mutex = threading.Lock()
 
@@ -100,29 +102,45 @@ class ThreadedStateMachine:
 
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
+        return
     
     def _run(self):
         while not rospy.is_shutdown():
-            event = self.event_queue.get()
-            if event is None:
+            event = self.event_queue.get(timeout=None)
+            if event == "None":
+                rospy.loginfo(f"Fsm({self.name}) got event(None), exit running...")
                 break
 
             with self.trigger_mutex:
-                self.trigger(event)
+                rospy.loginfo(f"Fsm({self.name}) starts to trigger event({event}).")
+                self._trigger(event)
+                rospy.loginfo(f"Fsm({self.name}) execute event({event}) done.")
         return
     
-    def trigger(self, event: str):
+    def _trigger(self, event: str):
         try:
-            getattr(self, event)()
+            # check if the event is defined in the FSM
+            if hasattr(self, event):
+                # get and execute corresponding trigger function (synchronization)
+                getattr(self, event)()
+            else:
+                rospy.logwarn(f"Fsm({self.name}) does not have event({event}).")
         except AttributeError:
-            pass
+            rospy.logwarn(f"Event({event}) is not allowed in current state({self.state}) of FSM({self.name}).")
         return
+    
     def trigger_event(self, event: str):
+        """
+        This function is used for putting event into specified fsm queue. 
+        """
         self.event_queue.put(event)
+        rospy.loginfo(f"Event({event}) has been put into queue of FSM({self.name}).")
+        return
     
     def stop(self):
-        self.event_queue.put(None)
+        self.event_queue.put("None")
         self.thread.join()
+        return
 
 
 def _exec_usr_req_timer_callback():
@@ -159,3 +177,10 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
                   f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
     
     return ExecUsrReqResponse(True)
+
+def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, Type[ThreadedStateMachine]]):
+    for fsm in fsm_dict.values():
+        fsm.stop()
+
+    event_manager.stop()
+    return

@@ -11,9 +11,11 @@ class EventManager():
         self.running = threading.Event()  # broadcast thread running flag, default False
         self.broadcast_thread = None
 
-        self.start()
+        self._start()
+        rospy.loginfo("Event manager is ready.")
+        return
 
-    def start(self):
+    def _start(self):
         """
         start the event broadcast thread
         """
@@ -21,6 +23,7 @@ class EventManager():
             self.running.set()  # set flag as True
             self.broadcast_thread = threading.Thread(target=self._broadcast_event)
             self.broadcast_thread.start()
+        return
 
     def stop(self):
         """
@@ -29,62 +32,80 @@ class EventManager():
         self.running.clear()  # set flag as False
         if self.broadcast_thread and self.broadcast_thread.is_alive():
             self.broadcast_thread.join()
+            rospy.loginfo("Event manager exit.")
+        return
 
     def register_listener(self, listener_dict):
+        self.listeners_mutex.acquire()
         for name, listener in listener_dict.items():
             if listener not in self.listeners:
-                with self.listeners_mutex:
-                    self.listeners.append(listener)
+                self.listeners.append(listener)
                 rospy.loginfo(f"Registered listener: {name}")
+        self.listeners_mutex.release()
+        rospy.loginfo("Register listeners have done.")
+        return
 
     def unregister_listener(self, listener):
+        self.listeners_mutex.acquire()
         if listener in self.listeners:
-            with self.listeners_mutex:
-                self.listeners.remove(listener)
+            self.listeners.remove(listener)
             rospy.loginfo(f"Unregistered listener: {listener.name}")
+        self.listeners_mutex.release()
+        return
 
     def put_event_in_queue(self, event: str):
         """
-        Put an event into the event queue.
+        Put an event into the event master queue.
 
         :param event: The event object to be broadcasted to all registered listeners.
         """
         if self.running.is_set():
             self.event_queue.put(event)
+            rospy.loginfo(f"Put event({event}) into event master queue.")
+        else:
+            rospy.logwarn("EventManager is not running, cannot put event in queue.")
+        return
 
+    def _if_event_valid(self, fsm_instance, event):
+        """
+        To check if the event is in the state machine.
+        """
+        return any(transition['trigger'] == event for transition in fsm_instance.machine.get_transitions())
+
+    def _send_event_to_fsm(self, fsm_instance, event: str):
+        # if event is not one of FSM's trigger event.
+        if not self._if_event_valid(fsm_instance, event):
+            rospy.logwarn(f"Event({event}) is not valid for FSM({fsm_instance.name}).")
+            return
+
+        try:
+            fsm_instance.trigger_event(event)  # non-blocking
+        except MachineError as e:
+            rospy.logwarn(
+                f"Event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})."
+            )
+        return
+    
     def _broadcast_event(self):
         """
         Fetch event from queue and broadcast to all listeners by calling listener's callback.
         """
+        rospy.loginfo("Event master is broadcasting event...")
         while self.running.is_set():
             try:
                 event = self.event_queue.get(timeout=None)
+                rospy.loginfo(f"Got one event from event master queue: {event}.")
 
                 self.listeners_mutex.acquire()
                 for listener in self.listeners:
-                    send_event_to_fsm(listener, event)
+                    self._send_event_to_fsm(listener, event)
+                    rospy.loginfo(f"Broadcasted event({event}) to listener: {listener.name}.")
                 self.listeners_mutex.release()
 
+            except:
+                rospy.loginfo("Broadcast occur error.")
+
             finally:
+                self.listeners_mutex.release()
                 self.event_queue.task_done()
-
-
-def _if_event_valid(fsm_instance, event):
-    """
-    To check if the event is in the state machine.
-    """
-    return any(transition['trigger'] == event for transition in fsm_instance.machine.get_transitions())
-
-def send_event_to_fsm(fsm_instance, event: str):
-    # if event is not one of FSM's trigger event.
-    if not _if_event_valid(fsm_instance, event):
-        rospy.logwarn(f"event({event}) is not valid for FSM({fsm_instance.name})")
         return
-
-    try:
-        fsm_instance.trigger(event)
-    except MachineError as e:
-        rospy.logwarn(
-            f"event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})"
-        )
-    return

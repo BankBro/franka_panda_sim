@@ -6,15 +6,6 @@ from fsm_action_task_manage import ActionTaskManageFSM
 from fsm_action_move import ActionMoveFSM
 from fsm_action_queue import ActionQueueFSM
 
-from typing import Dict
-
-
-def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, ActionTaskManageFSM]):
-    for fsm in fsm_dict.values():
-        fsm.stop()
-
-    event_manager.stop()
-    return
 
 def main():
     rospy.init_node("fsm_start")
@@ -26,6 +17,7 @@ def main():
         "action_move": ActionMoveFSM(event_manager),
         "action_queue": ActionQueueFSM(event_manager),
     }
+    # register fsm instance as event master's listener
     event_manager.register_listener(fsm_dict)
 
     # publish services
