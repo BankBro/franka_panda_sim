@@ -33,6 +33,7 @@ class EventManager():
         if self.broadcast_thread and self.broadcast_thread.is_alive():
             self.broadcast_thread.join()
             rospy.loginfo("Event master exit.")
+        rospy.loginfo("Event master is not running no need to exit.")
         return
 
     def register_listener(self, listener_dict):

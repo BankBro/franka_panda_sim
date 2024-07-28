@@ -107,6 +107,8 @@ class ThreadedStateMachine:
     def _run(self):
         while not rospy.is_shutdown():
             event = self.event_queue.get(timeout=None)
+            rospy.loginfo(f"FSM({self.name}) received event({event}).")
+
             if event == "None":
                 rospy.loginfo(f"Fsm({self.name}) got event(None), exit running...")
                 break
@@ -138,6 +140,7 @@ class ThreadedStateMachine:
         return
     
     def stop(self):
+        rospy.loginfo(f"Put None event into FSM({self.name}) queue.")
         self.event_queue.put("None")
         self.thread.join()
         return
@@ -179,9 +182,9 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
     return ExecUsrReqResponse(True)
 
 def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, Type[ThreadedStateMachine]]):
+    rospy.loginfo("Exit event master and all FSM.")
     for fsm in fsm_dict.values():
         fsm.stop()
 
     event_manager.stop()
-    rospy.loginfo("Event master and all FSM has exited.")
     return
