@@ -24,7 +24,7 @@ def main():
     rospy.Service("exec_usr_req_service", ExecUsrReq, lambda req: exec_usr_req_callback(req, event_manager))
     rospy.loginfo("Service(exec_usr_req_service) start.")
 
-    rospy.on_shutdown(on_shutdown(event_manager, fsm_dict))
+    rospy.on_shutdown(lambda: on_shutdown(event_manager, fsm_dict))
     rospy.spin()
 
 

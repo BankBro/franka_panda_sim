@@ -25,15 +25,25 @@ class EventManager():
             self.broadcast_thread.start()
         return
 
+    # def stop(self):
+    #     """
+    #     stop the event broadcast thread
+    #     """
+    #     if self.broadcast_thread and self.broadcast_thread.is_alive():
+    #         self.broadcast_thread.join()
+    #         rospy.loginfo("Event master exit.")
+
+    #     self.running.clear()  # set flag as False
+    #     rospy.loginfo("Event master is not running no need to exit.")
+    #     return
+    
     def stop(self):
         """
         stop the event broadcast thread
         """
-        self.running.clear()  # set flag as False
-        if self.broadcast_thread and self.broadcast_thread.is_alive():
-            self.broadcast_thread.join()
-            rospy.loginfo("Event master exit.")
-        rospy.loginfo("Event master is not running no need to exit.")
+        self.event_queue.put("None")
+        self.broadcast_thread.join()
+        rospy.loginfo("Event master has exited.")
         return
 
     def register_listener(self, listener_dict):
@@ -96,6 +106,10 @@ class EventManager():
             try:
                 event = self.event_queue.get(timeout=None)
                 rospy.loginfo(f"Got one event from event master queue: {event}.")
+
+                if event == "None":
+                    self.running.clear()  # set flag as False
+                    break
 
                 self.listeners_mutex.acquire()
                 for listener in self.listeners:
