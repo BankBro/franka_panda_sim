@@ -58,6 +58,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
     def fetch_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        print(f"REQ_MODEL_NAME={REQ_MODEL_NAME}")
 
         # fetch action
         rospy.loginfo(f"Start to fetch action.")
