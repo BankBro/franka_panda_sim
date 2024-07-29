@@ -105,7 +105,7 @@ class ThreadedStateMachine:
     def _run(self):
         while not rospy.is_shutdown():
             event = self.event_queue.get(timeout=None)
-            rospy.loginfo(f"FSM({self.name}) received event({event}).")
+            rospy.loginfo(f"FSM({self.name}), state({self.state}) received event({event}).")
 
             if event == "None":
                 rospy.loginfo(f"Fsm({self.name}) got event(None), exit running...")
