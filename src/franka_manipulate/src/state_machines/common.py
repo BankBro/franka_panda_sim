@@ -133,7 +133,7 @@ class ThreadedStateMachine:
             rospy.logwarn(f"Event({event}) is not allowed in current state({self.state}) of FSM({self.name}).")
         return
     
-    def trigger_event(self, event: str):
+    def put_event(self, event: str):
         """
         This function is used for putting event into specified fsm queue. 
         """

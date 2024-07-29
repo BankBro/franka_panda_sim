@@ -90,7 +90,7 @@ class EventManager():
             return
 
         try:
-            fsm_instance.trigger_event(event)  # non-blocking
+            fsm_instance.put_event(event)  # non-blocking
         # except MachineError as e:
         except:
             rospy.logwarn(f"Event({event}) trigger failed.")
