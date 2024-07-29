@@ -69,12 +69,13 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         queue_size = response.queue_size
         rospy.loginfo(f"FSM({self.name}) fetch action, result({fetch_ret}).")
 
+        print(f"REQ_MODEL_NAME={REQ_MODEL_NAME}")
+
         # If queue is empty, predict and store new action.
         if not fetch_ret:
             rospy.logwarn(f"FSM({self.name}) queue is empty.")
 
             with REQ_INFO_MUTEX:
-                global REQ_MODEL_NAME
                 request = StoreNewActionToQueueRequest()
                 request.model_name = REQ_MODEL_NAME
                 request.instruction = REQ_INSTRUCTION
