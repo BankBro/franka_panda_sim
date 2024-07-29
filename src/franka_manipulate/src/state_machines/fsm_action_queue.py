@@ -47,11 +47,13 @@ class ActionQueueFSM(ThreadedStateMachine):
         return
 
     def init_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
         return
 
     def predict_store_action_callback(self):
-        global DURING_PREDICT_ACTION
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
+        global DURING_PREDICT_ACTION
         with DURING_PREDICT_ACTION_MUTEX:
             DURING_PREDICT_ACTION = True
         
@@ -80,6 +82,8 @@ class ActionQueueFSM(ThreadedStateMachine):
         
 
     def clear_queue_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+
         rospy.wait_for_service("clear_action_queue_service")
         response: ClearActionQueueResponse = self.clear_action_queue()
 

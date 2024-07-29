@@ -71,6 +71,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         # Check if fsm is predicting action.
         with DURING_PREDICT_ACTION_MUTEX:
             if DURING_PREDICT_ACTION:
+                rospy.loginfo(f"###################################################### put_event_in_queue predicting_action")
                 self.event_manager.put_event_in_queue('predicting_action')
                 return
 
