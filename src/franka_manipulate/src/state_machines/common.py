@@ -38,10 +38,8 @@ REQ_INSTRUCTION = None
 REQ_UNNORM_KEY = None
 REQ_INFO_MUTEX = threading.Lock()
 
-DURING_PREDICT_ACTION = False
-DURING_PREDICT_ACTION_MUTEX = threading.Lock()
-
 USR_REQ_DONE = threading.Event()  # default: False
+DURING_PREDICT_ACTION = threading.Event()
 PREDICT_ACTION_DONE = threading.Event()
 ACTION_REACH_THRESHOLD = threading.Event()
 CLEAR_ACTION_QUEUE_DONE = threading.Event()
@@ -147,6 +145,7 @@ class ThreadedStateMachine:
 
 
 def _exec_usr_req_timer_callback():
+    rospy.loginfo(f"User's request executes timeout({MAX_EXEC_TIME}s).")
     global USR_REQ_DONE
     USR_REQ_DONE.set()
     return
@@ -174,6 +173,7 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
     # wait for usr req done
     USR_REQ_DONE.wait()
     USR_REQ_DONE.clear()
+    timer.cancel()
 
     _set_usr_req_info(None, None, None)
     rospy.loginfo(f"User request has been done, model({request.model_name}), "

@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 
-from common import *
 from event_master import EventManager
+from common import *
+import time
 
 from franka_predict_action.srv import (
     FetchSingleAction,
     FetchSingleActionResponse,
 )
+
 from franka_manipulate.srv import(
     MoveitPosCtl,
     MoveitPosCtlRequest,
     MoveitPosCtlResponse
-)
-from franka_predict_action.srv import (
-    StoreNewActionToQueue,
-    StoreNewActionToQueueRequest,
-    StoreNewActionToQueueResponse,
 )
 
 
@@ -26,15 +23,20 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             {'name': 'fetch_action',   'on_enter': 'fetch_action_callback'},
             {'name': 'check_continue', 'on_enter': 'check_continue_callback'},
             {'name': 'exec_action',    'on_enter': 'exec_action_callback'},
+            {'name': 'predict_action', 'on_enter': 'predict_action_callback'},
+            {'name': 'clear_action',   'on_enter': 'clear_action_callback'},
         ]
         self.fsm_transitions = [
             {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
-            {'trigger': 'fetch_action_failed',    'source': 'fetch_action',      'dest': 'init'},
-            {'trigger': 'retry_fetch_action',     'source': 'fetch_action',      'dest': 'fetch_action'},
             {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
             {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
             {'trigger': 'reach_threshold',        'source': 'exec_action',       'dest': 'fetch_action'},
-            {'trigger': 'exec_action_failed',     'source': 'exec_action',       'dest': 'check_continue'},
+            {'trigger': 'exec_action_failed',     'source': 'exec_action',       'dest': 'clear_action'},
+            {'trigger': 'clear_queue_done',       'source': 'clear_action',      'dest': 'check_continue'},
+            {'trigger': 'queue_empty',            'source': 'fetch_action',      'dest': 'check_continue'},
+            {'trigger': 'predicting_action',      'source': 'fetch_action',      'dest': 'predict_action'},
+            {'trigger': 'predict_action_succeed', 'source': 'predict_action',    'dest': 'fetch_action'},
+            {'trigger': 'predict_action_failed',  'source': 'predict_action',    'dest': 'check_continue'},
             {'trigger': 'keep_exec',              'source': 'check_continue',    'dest': 'fetch_action'},
             {'trigger': 'stop_exec',              'source': 'check_continue',    'dest': 'init'},
         ]
@@ -44,55 +46,51 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         self.name = "action_task_manage"
         self.event_manager = event_manager
         self.tf_manager = TFManager()
-        self.on_enter_lock = threading.Lock()
 
-        # Init service.
-        self.exec_action = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
+        # define each callback function while entering each state
+        # self.machine.on_enter_init(self.init_callback)
+        # self.machine.on_enter_fetch_action(self.fetch_action_callback)
+        # self.machine.on_enter_check_continue(self.check_continue_callback)
+        # self.machine.on_enter_exec_action(self.exec_action_callback)
+        # self.machine.on_enter_predict_action(self.predict_action_callback)
+        # self.machine.on_enter_clear_action(self.clear_action_callback)
+
+        # Init fetch action from queue service.
         self.fetch_action_service = rospy.ServiceProxy("fetch_single_action_from_queue_service", FetchSingleAction)
-        self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
+        # Init store action to queue service.
+        self.exec_action = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
         return
 
     def init_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        # self.event_manager.put_event_in_queue('usr_req')
         return
 
     def fetch_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
+        # Check if fsm is predicting action.
+        with DURING_PREDICT_ACTION_MUTEX:
+            rospy.loginfo(f"DURING_PREDICT_ACTION={DURING_PREDICT_ACTION}")
+            if DURING_PREDICT_ACTION:
+                rospy.loginfo(f"###################################################### put_event_in_queue predicting_action")
+                self.event_manager.put_event_in_queue('predicting_action')
+                return
+
         # fetch action
         rospy.loginfo(f"Start to fetch action.")
         rospy.wait_for_service("fetch_single_action_from_queue_service")
-
         response: FetchSingleActionResponse = self.fetch_action_service()
         fetch_ret = response.fetch_ret
         action = response.action  # a list of pos and euler
         queue_size = response.queue_size
-        rospy.loginfo(f"FSM({self.name}) fetch action, result({fetch_ret}).")
+        rospy.loginfo(f"FSM({self.name}) fetch action from fetch_single_action_from_queue_service, result: {fetch_ret}.")
 
-        # If queue is empty, predict and store new action.
+        # Check if queue is empty.
         if not fetch_ret:
             rospy.logwarn(f"FSM({self.name}) queue is empty.")
-
-            with REQ_INFO_MUTEX:
-                request = StoreNewActionToQueueRequest()
-                request.model_name = REQ_MODEL_NAME
-                request.instruction = REQ_INSTRUCTION
-                request.unnorm_key = REQ_UNNORM_KEY
-
-            rospy.wait_for_service("store_new_action_to_queue_service")
-            response: StoreNewActionToQueueResponse = self.predict_store_action(request)
-
-            if response.store_ret:
-                rospy.loginfo("Predict and store action succeed.")
-                self.event_manager.put_event_in_queue('retry_fetch_action')
-                return
-            else:
-                rospy.logerr("Predict and store action failed.")
-                self.event_manager.put_event_in_queue('fetch_action_failed')
-                
-                global USR_REQ_DONE
-                USR_REQ_DONE.set()
-                return
+            self.event_manager.put_event_in_queue('queue_empty')
+            return
 
         # fetch an action succeed
         global SOURCE_POS
@@ -115,6 +113,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
     def check_continue_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        # time.sleep(10)
 
         if USR_REQ_DONE.is_set():
             # User's request has been done, fsm stop working.
@@ -140,15 +139,31 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         rospy.wait_for_service("moveit_pos_ctl_service")
         response: MoveitPosCtlResponse = self.exec_action(request)
         if not response.go_ret:
-            rospy.logerr("Execute action failed.")
             self.event_manager.put_event_in_queue("exec_action_failed")
             return
         
-        # wait for action reaching threshold
-        rospy.loginfo("Waiting for action reaching threshold...")
         global ACTION_REACH_THRESHOLD
+        # wait for action reaching threshold
         ACTION_REACH_THRESHOLD.wait()
+        # Clear tag as False after action reaching threshold.
         ACTION_REACH_THRESHOLD.clear()
-
         self.event_manager.put_event_in_queue("reach_threshold")
+        return
+
+    def predict_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+
+        global PREDICT_ACTION_DONE
+        # wait for predict action done
+        PREDICT_ACTION_DONE.wait()
+        PREDICT_ACTION_DONE.clear()
+        return
+
+    def clear_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+
+        global CLEAR_ACTION_QUEUE_DONE
+        # wait for clear action queue done
+        CLEAR_ACTION_QUEUE_DONE.wait()
+        CLEAR_ACTION_QUEUE_DONE.clear()
         return

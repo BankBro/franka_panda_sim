@@ -32,7 +32,6 @@ class ActionMoveFSM(ThreadedStateMachine):
         return
 
     def init_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
         return
     
     @staticmethod
@@ -55,8 +54,6 @@ class ActionMoveFSM(ThreadedStateMachine):
         return False
 
     def moving_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
-        
         global ACTION_REACH_THRESHOLD
 
         with SOURCE_POS_MUTEX:

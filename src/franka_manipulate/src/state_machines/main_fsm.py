@@ -4,7 +4,7 @@ from common import *
 
 from fsm_action_task_manage import ActionTaskManageFSM
 from fsm_action_move import ActionMoveFSM
-from fsm_action_queue import ActionQueueFSM
+# from fsm_action_queue import ActionQueueFSM
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     fsm_dict = {
         "action_task_manage": ActionTaskManageFSM(event_manager),
         "action_move": ActionMoveFSM(event_manager),
-        "action_queue": ActionQueueFSM(event_manager),
+        # "action_queue": ActionQueueFSM(event_manager),
     }
     # register fsm instance as event master's listener
     event_manager.register_listener(fsm_dict)
