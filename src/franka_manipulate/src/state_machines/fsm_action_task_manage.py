@@ -62,7 +62,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
     def init_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
-        self.event_manager.put_event_in_queue('usr_req')
+        # self.event_manager.put_event_in_queue('usr_req')
         return
 
     def fetch_action_callback(self):
