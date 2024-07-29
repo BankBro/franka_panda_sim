@@ -17,7 +17,14 @@ from franka_manipulate.srv import(
 
 class ActionTaskManageFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
-        self.fsm_states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
+        self.fsm_states = [
+            {'name': 'init',           'on_enter': 'init_callback'},
+            {'name': 'fetch_action',   'on_enter': 'fetch_action_callback'},
+            {'name': 'check_continue', 'on_enter': 'check_continue_callback'},
+            {'name': 'exec_action',    'on_enter': 'exec_action_callback'},
+            {'name': 'predict_action', 'on_enter': 'predict_action_callback'},
+            {'name': 'clear_action',   'on_enter': 'clear_action_callback'},
+        ]
         self.fsm_transitions = [
             {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
             {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
@@ -40,12 +47,12 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         self.tf_manager = TFManager()
 
         # define each callback function while entering each state
-        self.machine.on_enter_init(self.init_callback)
-        self.machine.on_enter_fetch_action(self.fetch_action_callback)
-        self.machine.on_enter_check_continue(self.check_continue_callback)
-        self.machine.on_enter_exec_action(self.exec_action_callback)
-        self.machine.on_enter_predict_action(self.predict_action_callback)
-        self.machine.on_enter_clear_action(self.clear_action_callback)
+        # self.machine.on_enter_init(self.init_callback)
+        # self.machine.on_enter_fetch_action(self.fetch_action_callback)
+        # self.machine.on_enter_check_continue(self.check_continue_callback)
+        # self.machine.on_enter_exec_action(self.exec_action_callback)
+        # self.machine.on_enter_predict_action(self.predict_action_callback)
+        # self.machine.on_enter_clear_action(self.clear_action_callback)
 
         # Init fetch action from queue service.
         self.fetch_action_service = rospy.ServiceProxy("fetch_single_action", FetchSingleAction)
@@ -144,7 +151,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
     def clear_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
-        
+
         global CLEAR_ACTION_QUEUE_DONE
         # wait for clear action queue done
         CLEAR_ACTION_QUEUE_DONE.wait()
