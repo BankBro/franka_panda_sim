@@ -61,12 +61,12 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def init_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
         # self.event_manager.put_event_in_queue('usr_req')
         return
 
     def fetch_action_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
         # Check if fsm is predicting action.
         with DURING_PREDICT_ACTION_MUTEX:
@@ -103,7 +103,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def check_continue_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
         if USR_REQ_DONE.is_set():
             # User's request has been done, fsm stop working.
@@ -113,7 +113,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def exec_action_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
         with TARGET_POS_MUTEX:
             action = TARGET_POS
@@ -141,7 +141,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def predict_action_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
         global PREDICT_ACTION_DONE
         # wait for predict action done
@@ -150,7 +150,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def clear_action_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
         global CLEAR_ACTION_QUEUE_DONE
         # wait for clear action queue done

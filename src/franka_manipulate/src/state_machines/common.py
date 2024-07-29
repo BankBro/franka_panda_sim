@@ -116,7 +116,7 @@ class ThreadedStateMachine:
             with self.trigger_mutex:
                 rospy.loginfo(f"Fsm({self.name}), state({self.state}) starts to trigger event({event}).")
                 self._trigger(event)
-                rospy.loginfo(f"Fsm({self.name}) execute event({event}) done.")
+                rospy.loginfo(f"Fsm({self.name}), state({self.state}) execute event({event}) done.")
         return
     
     def _trigger(self, event: str):
