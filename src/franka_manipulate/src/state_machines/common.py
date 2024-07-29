@@ -177,8 +177,11 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
     USR_REQ_DONE.wait()
     USR_REQ_DONE.clear()
     timer.cancel()
+    print(f"exec_usr_req_callback1 REQ_MODEL_NAME={REQ_MODEL_NAME}")
 
     _set_usr_req_info(None, None, None)
+    print(f"exec_usr_req_callback2 REQ_MODEL_NAME={REQ_MODEL_NAME}")
+
     rospy.loginfo(f"User request has been done, model({request.model_name}), "
                   f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
     
