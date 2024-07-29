@@ -159,6 +159,7 @@ def _set_usr_req_info(model_name, instruction, unnorm_key):
         REQ_MODEL_NAME = model_name
         REQ_INSTRUCTION = instruction
         REQ_UNNORM_KEY = unnorm_key
+    print(f"_set_usr_req_info REQ_MODEL_NAME={REQ_MODEL_NAME}")
 
 def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManager):
     rospy.loginfo(f"Start exec usr req callback.")
