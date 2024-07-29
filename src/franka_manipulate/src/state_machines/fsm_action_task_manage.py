@@ -74,6 +74,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             rospy.logwarn(f"FSM({self.name}) queue is empty.")
 
             with REQ_INFO_MUTEX:
+                global REQ_MODEL_NAME
                 request = StoreNewActionToQueueRequest()
                 request.model_name = REQ_MODEL_NAME
                 request.instruction = REQ_INSTRUCTION
