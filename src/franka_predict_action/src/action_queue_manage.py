@@ -104,7 +104,7 @@ class ActionQueueManage():
 
         return response
 
-    def _handle_fetch_single_action(self):
+    def _handle_fetch_single_action(self, _):
         response = FetchSingleActionResponse()
 
         self.action_queue_mutex.acquire()
@@ -123,7 +123,7 @@ class ActionQueueManage():
 
         return response
     
-    def _handle_clear_action_queue(self):
+    def _handle_clear_action_queue(self, _):
 
         self.action_queue_mutex.acquire()
         self.action_queue.queue.clear()
