@@ -85,17 +85,14 @@ class EventManager():
 
     def _send_event_to_fsm(self, fsm_instance, event: str):
         # if event is not one of FSM's trigger event.
-        rospy.loginfo("Enter send event to FSM.")
         if not self._if_event_valid(fsm_instance, event):
             rospy.logwarn(f"Event({event}) is not valid for FSM({fsm_instance.name}).")
             return
 
         try:
             fsm_instance.trigger_event(event)  # non-blocking
-        except MachineError as e:
-            # rospy.logwarn(
-            #     f"Event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})."
-            # )
+        # except MachineError as e:
+        except:
             rospy.logwarn(f"Event({event}) trigger failed.")
         return
     
@@ -116,7 +113,7 @@ class EventManager():
 
                 self.listeners_mutex.acquire()
                 for listener in self.listeners:
-                    rospy.loginfo(f"Broadcasted event({event}) to listener: {listener.name}.")
+                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}).")
                     self._send_event_to_fsm(listener, event)
                     rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), done.")
                 self.listeners_mutex.release()
