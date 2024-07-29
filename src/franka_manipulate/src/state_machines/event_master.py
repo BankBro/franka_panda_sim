@@ -115,7 +115,7 @@ class EventManager():
                 for listener in self.listeners:
                     rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}).")
                     self._send_event_to_fsm(listener, event)
-                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), done.")
+                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}), done.")
                 self.listeners_mutex.release()
 
             except:
