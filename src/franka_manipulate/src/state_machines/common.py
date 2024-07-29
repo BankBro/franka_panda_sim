@@ -169,6 +169,8 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
 
     _set_usr_req_info(request.model_name, request.instruction, request.unnorm_key)
     event_manager.put_event_in_queue("usr_req")
+    rospy.loginfo(f"USER model_name({request.model_name}), instruction({request.instruction}), unnorm_key({request.unnorm_key}).")
+    rospy.loginfo(f"{REQ_MODEL_NAME}, {REQ_INSTRUCTION}, {REQ_UNNORM_KEY}")
 
     # wait for usr req done
     USR_REQ_DONE.wait()
