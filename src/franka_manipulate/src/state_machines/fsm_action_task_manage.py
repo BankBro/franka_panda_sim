@@ -2,6 +2,7 @@
 
 from event_master import EventManager
 from common import *
+import time
 
 from franka_predict_action.srv import (
     FetchSingleAction,
@@ -111,6 +112,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
     def check_continue_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        time.sleep(10)
 
         if USR_REQ_DONE.is_set():
             # User's request has been done, fsm stop working.
