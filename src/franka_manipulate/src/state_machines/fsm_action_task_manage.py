@@ -78,6 +78,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
                 request.model_name = REQ_MODEL_NAME
                 request.instruction = REQ_INSTRUCTION
                 request.unnorm_key = REQ_UNNORM_KEY
+                rospy.loginfo(f"model_name={REQ_MODEL_NAME}), instruction={REQ_INSTRUCTION}, unnorm_key={REQ_UNNORM_KEY}.")
 
             rospy.wait_for_service("store_new_action_to_queue_service")
             response: StoreNewActionToQueueResponse = self.predict_store_action(request)
@@ -89,7 +90,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             else:
                 rospy.logerr("Predict and store action failed.")
                 self.event_manager.put_event_in_queue('fetch_action_failed')
-                
+
                 global USR_REQ_DONE
                 USR_REQ_DONE.set()
                 return
