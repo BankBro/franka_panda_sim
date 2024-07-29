@@ -126,7 +126,9 @@ class ThreadedStateMachine:
                 rospy.loginfo(f"flag1: event {event}, fsm: {self.name}, state: {self.state}")
                 # get and execute corresponding trigger function (synchronization)
                 method = getattr(self, event)
+                rospy.loginfo(f"flag2: event {event}, fsm: {self.name}, state: {self.state}")
                 method()
+                rospy.loginfo(f"flag3: event {event}, fsm: {self.name}, state: {self.state}")
             else:
                 rospy.logwarn(f"Fsm({self.name}) does not have event({event}).")
         except AttributeError:
