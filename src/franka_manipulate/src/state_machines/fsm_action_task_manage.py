@@ -75,14 +75,17 @@ class ActionTaskManageFSM(ThreadedStateMachine):
                 return
 
         # fetch action
+        rospy.loginfo(f"Start to fetch action.")
         rospy.wait_for_service("fetch_single_action")
         response: FetchSingleActionResponse = self.fetch_action_service()
         fetch_ret = response.fetch_ret
         action = response.action  # a list of pos and euler
         queue_size = response.queue_size
+        rospy.loginfo(f"FSM({self.name}) fetch action from fetch_single_action, result: {fetch_ret}.")
 
         # Check if queue is empty.
         if not fetch_ret:
+            rospy.logwarn(f"FSM({self.name}) queue is empty.")
             self.event_manager.put_event_in_queue('queue_empty')
             return
 
@@ -91,14 +94,17 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         with SOURCE_POS_MUTEX:
             current_pos = self.tf_manager.get_link_pos(REFERENCE_FRAME, END_EFFECTOR_FRAME)
             SOURCE_POS = [current_pos[0], current_pos[1], current_pos[2]]
+        rospy.loginfo(f"Fetch current pos({current_pos[0], current_pos[1], current_pos[2]}).")
 
         global TARGET_POS
         with TARGET_POS_MUTEX:
             TARGET_POS = [action[0], action[1], action[2]]
+        rospy.loginfo(f"Fetch target pos({action[0], action[1], action[2]}).")
 
         if fetch_ret and queue_size > 0:
             self.event_manager.put_event_in_queue('fetch_ok_queue_remain')
         elif fetch_ret and queue_size == 0:
+            rospy.loginfo("Fetch action queue succeed, but queue is empty now.")
             self.event_manager.put_event_in_queue('fetch_ok_queue_empty')
         return
 
