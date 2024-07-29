@@ -56,6 +56,7 @@ class ActionQueueFSM(ThreadedStateMachine):
         global DURING_PREDICT_ACTION
         with DURING_PREDICT_ACTION_MUTEX:
             DURING_PREDICT_ACTION = True
+            rospy.loginfo(f"set DURING_PREDICT_ACTION as True.")
         
         # TODO: start to predict and store action
         request = StoreNewActionToQueueRequest()
@@ -68,8 +69,10 @@ class ActionQueueFSM(ThreadedStateMachine):
         response: StoreNewActionToQueueResponse = self.predict_store_action(request)
 
         if response.store_ret:
+            rospy.loginfo("Predict action succeed!")
             self.event_manager.put_event_in_queue('predict_action_succeed')
         else:
+            rospy.logerr("Predict action failed!")
             self.event_manager.put_event_in_queue('predict_action_failed')
         
         # finish predict and store action to queue
