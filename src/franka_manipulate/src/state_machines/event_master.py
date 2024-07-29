@@ -93,9 +93,10 @@ class EventManager():
         try:
             fsm_instance.trigger_event(event)  # non-blocking
         except MachineError as e:
-            rospy.logwarn(
-                f"Event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})."
-            )
+            # rospy.logwarn(
+            #     f"Event({event}) is not allowed in current state({fsm_instance.state}) of FSM({fsm_instance.name})."
+            # )
+            rospy.logwarn(f"Event({event}) trigger failed.")
         return
     
     def _broadcast_event(self):
