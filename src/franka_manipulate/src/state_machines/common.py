@@ -123,6 +123,7 @@ class ThreadedStateMachine:
         try:
             # check if the event is defined in the FSM
             if hasattr(self, event):
+                rospy.loginfo(f"flag1: event {event}, fsm: {self.name}, state: {self.state}")
                 # get and execute corresponding trigger function (synchronization)
                 getattr(self, event)()
             else:
