@@ -81,7 +81,7 @@ class EventManager():
         """
         To check if the event is in the state machine.
         """
-        return any(transition['trigger'] == event for transition in fsm_instance.transitions)
+        return any(transition['trigger'] == event for transition in fsm_instance.fsm_transitions)
 
     def _send_event_to_fsm(self, fsm_instance, event: str):
         # if event is not one of FSM's trigger event.

@@ -16,8 +16,8 @@ from franka_predict_action.srv import (
 
 class ActionQueueFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
-        self.states = ['init', 'predict_store_action', 'clear_queue']
-        self.transitions = [
+        self.fsm_states = ['init', 'predict_store_action', 'clear_queue']
+        self.fsm_transitions = [
             {'trigger': 'fetch_ok_queue_remain',  'source': 'init',                 'dest': 'predict_store_action'},
             {'trigger': 'queue_empty',            'source': 'init',                 'dest': 'predict_store_action'},
             {'trigger': 'predict_action_succeed', 'source': 'predict_store_action', 'dest': 'init'},
@@ -26,8 +26,8 @@ class ActionQueueFSM(ThreadedStateMachine):
             {'trigger': 'stop_exec',              'source': 'init',                 'dest': 'clear_queue'},
             {'trigger': 'clear_queue_done',       'source': 'clear_queue',          'dest': 'init'},
         ]
-        self.initial_state = "init"
-        super().__init__(self.states, self.transitions, self.initial_state)
+        self.fsm_initial_state = "init"
+        super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
 
         self.name = "action_queue"
         self.event_manager = event_manager

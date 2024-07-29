@@ -7,15 +7,15 @@ from event_master import EventManager
 
 class ActionMoveFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
-        self.states = ['init', 'moving']
-        self.transitions = [
+        self.fsm_states = ['init', 'moving']
+        self.fsm_transitions = [
             {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
             {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
             {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
             {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
         ]
-        self.initial_state = "init"
-        super().__init__(self.states, self.transitions, self.initial_state)
+        self.fsm_initial_state = "init"
+        super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
 
         self.name = "action_move"
         self.reference_frame = "world"

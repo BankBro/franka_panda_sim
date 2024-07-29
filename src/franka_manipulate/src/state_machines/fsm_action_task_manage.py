@@ -17,8 +17,8 @@ from franka_manipulate.srv import(
 
 class ActionTaskManageFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
-        self.states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
-        self.transitions = [
+        self.fsm_states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
+        self.fsm_transitions = [
             {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
             {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
             {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
@@ -32,8 +32,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             {'trigger': 'keep_exec',              'source': 'check_continue',    'dest': 'fetch_action'},
             {'trigger': 'stop_exec',              'source': 'check_continue',    'dest': 'init'},
         ]
-        self.initial_state = "init"
-        super().__init__(self.states, self.transitions, self.initial_state)
+        self.fsm_initial_state = "init"
+        super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
 
         self.name = "action_task_manage"
         self.event_manager = event_manager
@@ -54,10 +54,13 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def init_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
         self.event_manager.put_event_in_queue('usr_req')
         return
 
     def fetch_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+
         # Check if fsm is predicting action.
         with DURING_PREDICT_ACTION_MUTEX:
             if DURING_PREDICT_ACTION:
@@ -93,6 +96,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def check_continue_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+
         if USR_REQ_DONE.is_set():
             # User's request has been done, fsm stop working.
             self.event_manager.put_event_in_queue('stop_exec')
@@ -101,6 +106,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def exec_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+
         with TARGET_POS_MUTEX:
             action = TARGET_POS
 
@@ -127,6 +134,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def predict_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+
         global PREDICT_ACTION_DONE
         # wait for predict action done
         PREDICT_ACTION_DONE.wait()
@@ -134,6 +143,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         return
 
     def clear_action_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.current_state}).")
+        
         global CLEAR_ACTION_QUEUE_DONE
         # wait for clear action queue done
         CLEAR_ACTION_QUEUE_DONE.wait()
