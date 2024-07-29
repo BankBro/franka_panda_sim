@@ -17,8 +17,8 @@ from franka_manipulate.srv import(
 
 class ActionTaskManageFSM(ThreadedStateMachine):
     def __init__(self, event_manager: EventManager):
-        states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
-        transitions = [
+        self.states = ['init', 'fetch_action', 'check_continue', 'exec_action', 'predict_action', 'clear_action']
+        self.transitions = [
             {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
             {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
             {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
@@ -32,8 +32,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             {'trigger': 'keep_exec',              'source': 'check_continue',    'dest': 'fetch_action'},
             {'trigger': 'stop_exec',              'source': 'check_continue',    'dest': 'init'},
         ]
-        initial_state = "init"
-        super().__init__(states, transitions, initial_state)
+        self.initial_state = "init"
+        super().__init__(self.states, self.transitions, self.initial_state)
 
         self.name = "action_task_manage"
         self.event_manager = event_manager

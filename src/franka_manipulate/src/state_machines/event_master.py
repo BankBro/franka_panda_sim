@@ -81,10 +81,11 @@ class EventManager():
         """
         To check if the event is in the state machine.
         """
-        return any(transition['trigger'] == event for transition in fsm_instance.machine.get_transitions())
+        return any(transition['trigger'] == event for transition in fsm_instance.transitions)
 
     def _send_event_to_fsm(self, fsm_instance, event: str):
         # if event is not one of FSM's trigger event.
+        rospy.loginfo("Enter send event to FSM.")
         if not self._if_event_valid(fsm_instance, event):
             rospy.logwarn(f"Event({event}) is not valid for FSM({fsm_instance.name}).")
             return
@@ -108,13 +109,15 @@ class EventManager():
                 rospy.loginfo(f"Got one event from event master queue: {event}.")
 
                 if event == "None":
+                    rospy.logwarn("Event master got event(None), exit.")
                     self.running.clear()  # set flag as False
                     break
 
                 self.listeners_mutex.acquire()
                 for listener in self.listeners:
-                    self._send_event_to_fsm(listener, event)
                     rospy.loginfo(f"Broadcasted event({event}) to listener: {listener.name}.")
+                    self._send_event_to_fsm(listener, event)
+                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), done.")
                 self.listeners_mutex.release()
 
             except:
