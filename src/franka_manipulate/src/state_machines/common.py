@@ -123,16 +123,12 @@ class ThreadedStateMachine:
         try:
             # check if the event is defined in the FSM
             if hasattr(self, event):
-                rospy.loginfo(f"flag1: event {event}, fsm: {self.name}, state: {self.state}")
                 # get and execute corresponding trigger function (synchronization)
-                method = getattr(self, event)
-                rospy.loginfo(f"flag2: event {event}, fsm: {self.name}, state: {self.state}")
-                method()
-                rospy.loginfo(f"flag3: event {event}, fsm: {self.name}, state: {self.state}")
+                getattr(self, event)()
             else:
-                rospy.logwarn(f"Fsm({self.name}) does not have event({event}).")
-        except AttributeError:
-            rospy.logwarn(f"Event({event}) is not allowed in current state({self.state}) of FSM({self.name}).")
+                rospy.logwarn(f"Fsm({self.name}), state({self.state}) does not have event({event}).")
+        except Exception as e:
+            rospy.logwarn(f"Exception occurred: {e}. Event({event}), Fsm({self.name}), state({self.state}).")
         return
     
     def put_event(self, event: str):
