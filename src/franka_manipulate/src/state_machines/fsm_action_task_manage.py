@@ -55,7 +55,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         # self.machine.on_enter_clear_action(self.clear_action_callback)
 
         # Init fetch action from queue service.
-        self.fetch_action_service = rospy.ServiceProxy("fetch_single_action", FetchSingleAction)
+        self.fetch_action_service = rospy.ServiceProxy("fetch_single_action_from_queue_service", FetchSingleAction)
         # Init store action to queue service.
         self.exec_action = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
         return
@@ -76,12 +76,12 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         # fetch action
         rospy.loginfo(f"Start to fetch action.")
-        rospy.wait_for_service("fetch_single_action")
+        rospy.wait_for_service("fetch_single_action_from_queue_service")
         response: FetchSingleActionResponse = self.fetch_action_service()
         fetch_ret = response.fetch_ret
         action = response.action  # a list of pos and euler
         queue_size = response.queue_size
-        rospy.loginfo(f"FSM({self.name}) fetch action from fetch_single_action, result: {fetch_ret}.")
+        rospy.loginfo(f"FSM({self.name}) fetch action from fetch_single_action_from_queue_service, result: {fetch_ret}.")
 
         # Check if queue is empty.
         if not fetch_ret:
