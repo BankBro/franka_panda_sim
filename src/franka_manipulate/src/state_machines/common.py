@@ -161,8 +161,8 @@ def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManage
 
     # Clear the action queue.
     clean_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
-    request = ClearActionQueueRequest()
-    clean_action_queue(request)
+    clear_request = ClearActionQueueRequest()
+    clean_action_queue(clear_request)
 
     rospy.loginfo(f"User request has been done, model({request.model_name}), "
                   f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
