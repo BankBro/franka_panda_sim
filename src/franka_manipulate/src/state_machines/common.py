@@ -133,8 +133,8 @@ def _set_usr_req_info(model_name, instruction, unnorm_key):
     global_vars.set("REQ_INSTRUCTION", instruction)
     global_vars.set("REQ_UNNORM_KEY", unnorm_key)
 
-    print(f"Set usr req info: {global_vars.get("REQ_MODEL_NAME")}, "
-          f"{global_vars.get("REQ_INSTRUCTION")}, {global_vars.get("REQ_UNNORM_KEY")}")
+    print(f"Set usr req info: {global_vars.get('REQ_MODEL_NAME')}, "
+          f"{global_vars.get('REQ_INSTRUCTION')}, {global_vars.get('REQ_UNNORM_KEY')}")
 
 def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManager):
     rospy.loginfo(f"Start exec usr req callback.")
