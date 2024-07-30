@@ -21,7 +21,7 @@ from franka_manipulate.srv import (
     ExecUsrReqRequest,
     ExecUsrReqResponse
 )
-from franka_predict_action import (
+from franka_predict_action.srv import (
     ClearActionQueue,
     ClearActionQueueRequest
 )
