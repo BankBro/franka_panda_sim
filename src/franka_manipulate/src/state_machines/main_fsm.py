@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 
-from common import EventManager, exec_usr_req_callback, on_shutdown
+from common import EventManager, exec_usr_req_callback, on_shutdown, register_global_vars
 from fsm_action_task_manage import ActionTaskManageFSM
 from fsm_action_move import ActionMoveFSM
 from global_vars import global_vars
@@ -10,6 +10,7 @@ from franka_manipulate.srv import ExecUsrReq
 
 def main():
     rospy.init_node("fsm_action")
+    register_global_vars()
 
     usr_req_done = global_vars.get("USR_REQ_DONE")
     usr_req_done.clear()
