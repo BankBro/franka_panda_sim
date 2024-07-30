@@ -2,6 +2,7 @@
 
 import rospy
 import threading
+import traceback
 
 from common import ThreadedStateMachine, TFManager
 from event_master import EventManager
@@ -121,9 +122,10 @@ class ActionTaskManageFSM(ThreadedStateMachine):
                     self.event_manager.put_event_in_queue('retry_fetch_action')
                 else:
                     self._predict_store_action_failed()
-                    
-            except:
+
+            except Exception as e:
                 self._predict_store_action_failed()
+                rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             return
 
         # Fetch an action succeed, ready to execute the action.
