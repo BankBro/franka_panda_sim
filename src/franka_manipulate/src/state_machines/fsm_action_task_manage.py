@@ -84,6 +84,12 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         self.instruction = None
         self.unnorm_key = None
         return
+    
+    def _predict_store_action_failed(self):
+        rospy.logerr("Predict and store action failed.")
+        self.event_manager.put_event_in_queue('predict_action_failed')
+        self.usr_req_done.set()
+        return
 
     def fetch_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
@@ -108,17 +114,17 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             request.unnorm_key = self.unnorm_key
 
             rospy.wait_for_service("store_new_action_to_queue_service")
-            response: StoreNewActionToQueueResponse = self.predict_store_action(request)
-
-            if response.store_ret:
-                rospy.loginfo("Predict and store action succeed.")
-                self.event_manager.put_event_in_queue('retry_fetch_action')
-                return
-            else:
-                rospy.logerr("Predict and store action failed.")
-                self.event_manager.put_event_in_queue('predict_action_failed')
-                self.usr_req_done.set()
-                return
+            try:
+                response: StoreNewActionToQueueResponse = self.predict_store_action(request)
+                if response.store_ret:
+                    rospy.loginfo("Predict and store action succeed.")
+                    self.event_manager.put_event_in_queue('retry_fetch_action')
+                else:
+                    self._predict_store_action_failed()
+                    
+            except:
+                self._predict_store_action_failed()
+            return
 
         # Fetch an action succeed, ready to execute the action.
         current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
