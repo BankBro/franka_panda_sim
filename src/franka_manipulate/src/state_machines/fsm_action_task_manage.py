@@ -36,15 +36,15 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             {'name': 'exec_action',    'on_enter': 'exec_action_callback'},
         ]
         self.fsm_transitions = [
-            {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
-            {'trigger': 'predict_action_failed',  'source': 'fetch_action',      'dest': 'init'},
-            {'trigger': 'retry_fetch_action',     'source': 'fetch_action',      'dest': 'fetch_action'},
-            {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
-            {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
-            {'trigger': 'reach_threshold',        'source': 'exec_action',       'dest': 'fetch_action'},
-            {'trigger': 'exec_action_failed',     'source': 'exec_action',       'dest': 'check_continue'},
-            {'trigger': 'keep_exec',              'source': 'check_continue',    'dest': 'fetch_action'},
-            {'trigger': 'stop_exec',              'source': 'check_continue',    'dest': 'init'},
+            {'trigger': 'usr_req',                'source': 'init',            'dest': 'fetch_action',    'before': 'before_usr_req'},
+            {'trigger': 'predict_action_failed',  'source': 'fetch_action',    'dest': 'init'},
+            {'trigger': 'retry_fetch_action',     'source': 'fetch_action',    'dest': 'fetch_action'},
+            {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',    'dest': 'exec_action'},
+            {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',    'dest': 'exec_action'},
+            {'trigger': 'reach_threshold',        'source': 'exec_action',     'dest': 'fetch_action'},
+            {'trigger': 'exec_action_failed',     'source': 'exec_action',     'dest': 'check_continue'},
+            {'trigger': 'keep_exec',              'source': 'check_continue',  'dest': 'fetch_action'},
+            {'trigger': 'stop_exec',              'source': 'check_continue',  'dest': 'init'},
         ]
         self.fsm_initial_state = "init"
         super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
@@ -59,22 +59,30 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         self.action_reach_threshold = global_vars.get("ACTION_REACH_THRESHOLD")
 
+        self.model_name = None
+        self.instruction = None
+        self.unnorm_key = None
+
         # Init service.
         self.exec_action = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
         self.fetch_action_service = rospy.ServiceProxy("fetch_single_action_from_queue_service", FetchSingleAction)
         self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
         self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
         return
-
-    def init_callback(self):
-        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
-
+    def before_usr_req(self):
         self.model_name = global_vars.get("REQ_MODEL_NAME")
         self.instruction = global_vars.get("REQ_INSTRUCTION")
         self.unnorm_key = global_vars.get("REQ_UNNORM_KEY")
 
         rospy.loginfo(f"FSM({self.name}) fetch action, model({self.model_name}), "
                       f"instruction({self.instruction}), unnorm_key({self.unnorm_key}).")
+        return
+
+    def init_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        self.model_name = None
+        self.instruction = None
+        self.unnorm_key = None
         return
 
     def fetch_action_callback(self):
