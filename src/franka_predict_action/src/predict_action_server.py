@@ -100,7 +100,8 @@ class PredictActionServer():
                     "unnorm_key": unnorm_key
                 }
             ).json()
-        except requests.exceptions.RequestException as e:
+        # except requests.exceptions.RequestException as e:
+        except Exception as e:
             rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
         else:
