@@ -3,10 +3,11 @@
 import rospy
 import queue
 import threading
-from transitions import Machine, MachineError
-from tf.transformations import euler_from_quaternion
+from transitions import Machine
 from typing import Dict, Type
+from tf.transformations import euler_from_quaternion
 
+from global_vars import global_vars
 from event_master import EventManager
 
 from tf2_ros import (
@@ -16,38 +17,14 @@ from tf2_ros import (
     ConnectivityException,
     ExtrapolationException
 )
-
 from franka_manipulate.srv import (
-    ExecUsrReq,
     ExecUsrReqRequest,
     ExecUsrReqResponse
 )
-
-
-MAX_EXEC_TIME = 30
-ACTION_THRESHOLD = 0.35  # An action is considered reached threshold when:
-                         # - The percentage of the distance between
-                         #   the current position and the target position
-                         #   is less than the value of ACTION_THRESHOLD.
-
-REFERENCE_FRAME = "world"
-END_EFFECTOR_FRAME = "panda_grip_center"
-
-REQ_MODEL_NAME = None
-REQ_INSTRUCTION = None
-REQ_UNNORM_KEY = None
-REQ_INFO_MUTEX = threading.Lock()
-
-USR_REQ_DONE = threading.Event()  # default: False
-DURING_PREDICT_ACTION = threading.Event()
-PREDICT_ACTION_DONE = threading.Event()
-ACTION_REACH_THRESHOLD = threading.Event()
-CLEAR_ACTION_QUEUE_DONE = threading.Event()
-
-SOURCE_POS = []
-TARGET_POS = []
-SOURCE_POS_MUTEX = threading.Lock()
-TARGET_POS_MUTEX = threading.Lock()
+from franka_predict_action import (
+    ClearActionQueue,
+    ClearActionQueueRequest
+)
 
 
 class TFManager:
@@ -65,7 +42,7 @@ class TFManager:
             self.tf_listener = TransformListener(self.tf_buffer)
             self._initialized = True
 
-    def get_link_pos(self, reference_frame=REFERENCE_FRAME, end_effector_link=END_EFFECTOR_FRAME):
+    def get_link_pos(self, reference_frame, end_effector_link):
         try:
             trans = self.tf_buffer.lookup_transform(reference_frame,
                                                     end_effector_link,
@@ -144,43 +121,48 @@ class ThreadedStateMachine:
         return
 
 
-def _exec_usr_req_timer_callback():
-    rospy.loginfo(f"User's request executes timeout({MAX_EXEC_TIME}s).")
-    global USR_REQ_DONE
-    USR_REQ_DONE.set()
+def _exec_usr_req_timer_callback(usr_req_done):
+    timeout = global_vars.get("MAX_EXEC_TIME")
+    rospy.loginfo(f"User's request executes timeout({timeout}s).")
+
+    usr_req_done.set()
     return
 
 def _set_usr_req_info(model_name, instruction, unnorm_key):
-    global REQ_MODEL_NAME
-    global REQ_INSTRUCTION
-    global REQ_UNNORM_KEY
+    global_vars.set("REQ_MODEL_NAME", model_name)
+    global_vars.set("REQ_INSTRUCTION", instruction)
+    global_vars.set("REQ_UNNORM_KEY", unnorm_key)
 
-    with REQ_INFO_MUTEX:
-        REQ_MODEL_NAME = model_name
-        REQ_INSTRUCTION = instruction
-        REQ_UNNORM_KEY = unnorm_key
-    print(f"_set_usr_req_info REQ_MODEL_NAME={REQ_MODEL_NAME}")
+    print(f"Set usr req info: {global_vars.get("REQ_MODEL_NAME")}, "
+          f"{global_vars.get("REQ_INSTRUCTION")}, {global_vars.get("REQ_UNNORM_KEY")}")
 
 def exec_usr_req_callback(request: ExecUsrReqRequest, event_manager: EventManager):
     rospy.loginfo(f"Start exec usr req callback.")
-    # Set a timer, when timeout, stop execute user command.
-    timer = threading.Timer(MAX_EXEC_TIME, _exec_usr_req_timer_callback)
-    timer.start()
-    rospy.loginfo(f"User request timer is ready, timeout({MAX_EXEC_TIME}s).")
 
+    usr_req_done = global_vars.get("USR_REQ_DONE")
+
+    # Set a timer, when timeout, stop execute user command.
+    timeout = global_vars.get("MAX_EXEC_TIME")
+    timer = threading.Timer(timeout, lambda: _exec_usr_req_timer_callback(usr_req_done))
+    timer.start()
+    rospy.loginfo(f"User request timer is ready, timeout({timeout}s).")
+
+    # Set the model information of predicting actions.
     _set_usr_req_info(request.model_name, request.instruction, request.unnorm_key)
     event_manager.put_event_in_queue("usr_req")
     rospy.loginfo(f"USER model_name({request.model_name}), instruction({request.instruction}), unnorm_key({request.unnorm_key}).")
-    rospy.loginfo(f"{REQ_MODEL_NAME}, {REQ_INSTRUCTION}, {REQ_UNNORM_KEY}")
 
-    # wait for usr req done
-    USR_REQ_DONE.wait()
-    USR_REQ_DONE.clear()
+    # Wait for usr req done.
+    usr_req_done.wait()
+    usr_req_done.clear()
+
     timer.cancel()
-    print(f"exec_usr_req_callback1 REQ_MODEL_NAME={REQ_MODEL_NAME}")
-
     _set_usr_req_info(None, None, None)
-    print(f"exec_usr_req_callback2 REQ_MODEL_NAME={REQ_MODEL_NAME}")
+
+    # Clear the action queue.
+    clean_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
+    request = ClearActionQueueRequest()
+    clean_action_queue(request)
 
     rospy.loginfo(f"User request has been done, model({request.model_name}), "
                   f"instruction({request.instruction}), unnorm_key({request.unnorm_key})")
@@ -194,4 +176,27 @@ def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, Type[ThreadedSt
 
     event_manager.stop()
     rospy.loginfo("Exit event master and all FSM successfully.")
+    return
+
+def register_global_vars():
+    global_vars.register_variable("MAX_EXEC_TIME", 5)
+    global_vars.register_variable("ACTION_THRESHOLD", 0.35) # An action is considered reached threshold when:
+                                                            # - The percentage of the distance between
+                                                            #   the current position and the target position
+                                                            #   is less than the value of ACTION_THRESHOLD.
+
+    global_vars.register_variable("REFERENCE_FRAME", "world")
+    global_vars.register_variable("END_EFFECTOR_FRAME", "panda_grip_center")
+
+    global_vars.register_variable("REQ_MODEL_NAME", None)
+    global_vars.register_variable("REQ_INSTRUCTION", None)
+    global_vars.register_variable("REQ_UNNORM_KEY", None)
+
+    global_vars.register_variable("SOURCE_POS", [])
+    global_vars.register_variable("TARGET_POS", [])
+
+    global_vars.register_variable("USR_REQ_DONE", threading.Event(), with_lock=False)  # default: False
+    global_vars.register_variable("ACTION_REACH_THRESHOLD", threading.Event(), with_lock=False)
+    global_vars.register_variable("CLEAR_ACTION_QUEUE_DONE", threading.Event(), with_lock=False)
+
     return

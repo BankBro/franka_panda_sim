@@ -1,21 +1,23 @@
 #!/usr/bin/env python
+import rospy
 
-from common import *
-
+from common import EventManager, exec_usr_req_callback, on_shutdown
 from fsm_action_task_manage import ActionTaskManageFSM
 from fsm_action_move import ActionMoveFSM
-# from fsm_action_queue import ActionQueueFSM
+from global_vars import global_vars
 
+from franka_manipulate.srv import ExecUsrReq
 
 def main():
-    rospy.init_node("fsm_start")
-    USR_REQ_DONE.clear()
+    rospy.init_node("fsm_action")
+
+    usr_req_done = global_vars.get("USR_REQ_DONE")
+    usr_req_done.clear()
     
     event_manager = EventManager()
     fsm_dict = {
         "action_task_manage": ActionTaskManageFSM(event_manager),
         "action_move": ActionMoveFSM(event_manager),
-        # "action_queue": ActionQueueFSM(event_manager),
     }
     # register fsm instance as event master's listener
     event_manager.register_listener(fsm_dict)

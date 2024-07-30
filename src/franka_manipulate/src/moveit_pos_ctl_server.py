@@ -66,11 +66,11 @@ class MoveitPositionController:
         # set start and target pose and execute
         self.arm.set_start_state_to_current_state()
         self.arm.set_pose_target(target_pose, self.end_effector_link)
-        go_ret = self.arm.go()
+        go_ret = self.arm.go()  # Async way, if you want to use sync way, add "wait=True".
 
         if not go_ret:
-            rospy.logerr(f"Failed to go to target, pose: {request.x, request.y, request.z}, \
-                         rot: {request.yaw, request.pitch, request.roll}.")
+            rospy.logerr(f"Failed to go to target, pose: {request.x, request.y, request.z}, "
+                         f"rot: {request.yaw, request.pitch, request.roll}.")
         return MoveitPosCtlResponse(go_ret)
 
     def get_arm_target_trajectory(self, pos: list, rot: list):

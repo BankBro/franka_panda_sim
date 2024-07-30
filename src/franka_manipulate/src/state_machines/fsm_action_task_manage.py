@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
-from common import *
+import rospy
+import threading
+
+from common import ThreadedStateMachine, TFManager
 from event_master import EventManager
+from global_vars import global_vars
 
 from franka_predict_action.srv import (
     FetchSingleAction,
@@ -17,6 +21,10 @@ from franka_predict_action.srv import (
     StoreNewActionToQueueRequest,
     StoreNewActionToQueueResponse,
 )
+from franka_predict_action.srv import (
+    ClearActionQueue,
+    ClearActionQueueRequest,
+)
 
 
 class ActionTaskManageFSM(ThreadedStateMachine):
@@ -29,7 +37,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         ]
         self.fsm_transitions = [
             {'trigger': 'usr_req',                'source': 'init',              'dest': 'fetch_action'},
-            {'trigger': 'fetch_action_failed',    'source': 'fetch_action',      'dest': 'init'},
+            {'trigger': 'predict_action_failed',  'source': 'fetch_action',      'dest': 'init'},
             {'trigger': 'retry_fetch_action',     'source': 'fetch_action',      'dest': 'fetch_action'},
             {'trigger': 'fetch_ok_queue_remain',  'source': 'fetch_action',      'dest': 'exec_action'},
             {'trigger': 'fetch_ok_queue_empty',   'source': 'fetch_action',      'dest': 'exec_action'},
@@ -42,23 +50,35 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
 
         self.name = "action_task_manage"
+        self.reference_frame = global_vars.get("REFERENCE_FRAME")
+        self.end_effector_frame = global_vars.get("END_EFFECTOR_FRAME")
+        self.usr_req_done = global_vars.get("USR_REQ_DONE")
         self.event_manager = event_manager
         self.tf_manager = TFManager()
         self.on_enter_lock = threading.Lock()
+
+        self.action_reach_threshold = global_vars.get("ACTION_REACH_THRESHOLD")
 
         # Init service.
         self.exec_action = rospy.ServiceProxy("moveit_pos_ctl_service", MoveitPosCtl)
         self.fetch_action_service = rospy.ServiceProxy("fetch_single_action_from_queue_service", FetchSingleAction)
         self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
+        self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
         return
 
     def init_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+
+        self.model_name = global_vars.get("REQ_MODEL_NAME")
+        self.instruction = global_vars.get("REQ_INSTRUCTION")
+        self.unnorm_key = global_vars.get("REQ_UNNORM_KEY")
+
+        rospy.loginfo(f"FSM({self.name}) fetch action, model({self.model_name}), "
+                      f"instruction({self.instruction}), unnorm_key({self.unnorm_key}).")
         return
 
     def fetch_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
-        print(f"REQ_MODEL_NAME={REQ_MODEL_NAME}")
 
         # fetch action
         rospy.loginfo(f"Start to fetch action.")
@@ -70,18 +90,14 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         queue_size = response.queue_size
         rospy.loginfo(f"FSM({self.name}) fetch action, result({fetch_ret}).")
 
-        print(f"REQ_MODEL_NAME={REQ_MODEL_NAME}")
-
-        # If queue is empty, predict and store new action.
+        # Fetch an action failed, because of empty queue, ready to predict and store new action.
         if not fetch_ret:
             rospy.logwarn(f"FSM({self.name}) queue is empty.")
 
-            with REQ_INFO_MUTEX:
-                request = StoreNewActionToQueueRequest()
-                request.model_name = REQ_MODEL_NAME
-                request.instruction = REQ_INSTRUCTION
-                request.unnorm_key = REQ_UNNORM_KEY
-                rospy.loginfo(f"model_name={REQ_MODEL_NAME}), instruction={REQ_INSTRUCTION}, unnorm_key={REQ_UNNORM_KEY}.")
+            request = StoreNewActionToQueueRequest()
+            request.model_name = self.model_name
+            request.instruction = self.instruction
+            request.unnorm_key = self.unnorm_key
 
             rospy.wait_for_service("store_new_action_to_queue_service")
             response: StoreNewActionToQueueResponse = self.predict_store_action(request)
@@ -92,23 +108,20 @@ class ActionTaskManageFSM(ThreadedStateMachine):
                 return
             else:
                 rospy.logerr("Predict and store action failed.")
-                self.event_manager.put_event_in_queue('fetch_action_failed')
-
-                global USR_REQ_DONE
-                USR_REQ_DONE.set()
+                self.event_manager.put_event_in_queue('predict_action_failed')
+                self.usr_req_done.set()
                 return
 
-        # fetch an action succeed
-        global SOURCE_POS
-        with SOURCE_POS_MUTEX:
-            current_pos = self.tf_manager.get_link_pos(REFERENCE_FRAME, END_EFFECTOR_FRAME)
-            SOURCE_POS = [current_pos[0], current_pos[1], current_pos[2]]
-        rospy.loginfo(f"Fetch current pos({current_pos[0], current_pos[1], current_pos[2]}).")
+        # Fetch an action succeed, ready to execute the action.
+        current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
+        # TODO: the source pos is not the real pos when predict action.
+        source_pos = [current_pos.x, current_pos.y, current_pos.z]
+        global_vars.set("SOURCE_POS", source_pos)
+        rospy.loginfo(f"Fetch current pos({source_pos}).")
 
-        global TARGET_POS
-        with TARGET_POS_MUTEX:
-            TARGET_POS = [action[0], action[1], action[2]]
-        rospy.loginfo(f"Fetch target pos({action[0], action[1], action[2]}).")
+        target_pos = [action[0], action[1], action[2]]
+        global_vars.set("TARGET_POS", target_pos)
+        rospy.loginfo(f"Fetch target pos({target_pos}).")
 
         if fetch_ret and queue_size > 0:
             self.event_manager.put_event_in_queue('fetch_ok_queue_remain')
@@ -120,9 +133,16 @@ class ActionTaskManageFSM(ThreadedStateMachine):
     def check_continue_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
-        if USR_REQ_DONE.is_set():
+        if self.usr_req_done.is_set():
             # User's request has been done, fsm stop working.
+            rospy.loginfo("FSM({self.name}) check, stop exec.")
             self.event_manager.put_event_in_queue('stop_exec')
+
+            # clear the action queue.
+            request = ClearActionQueueRequest()
+            self.clear_action_queue(request)
+            rospy.wait_for_service("clear_action_queue_service")
+
         else:
             self.event_manager.put_event_in_queue('keep_exec')
         return
@@ -130,9 +150,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
     def exec_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
-        with TARGET_POS_MUTEX:
-            action = TARGET_POS
-
+        action = global_vars.get("TARGET_POS")
         request = MoveitPosCtlRequest()
         request.x = action[0]
         request.y = action[1]
@@ -142,7 +160,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         request.roll = action[5]
 
         rospy.wait_for_service("moveit_pos_ctl_service")
-        response: MoveitPosCtlResponse = self.exec_action(request)
+        response: MoveitPosCtlResponse = self.exec_action(request)  # Async call.
+
         if not response.go_ret:
             rospy.logerr("Execute action failed.")
             self.event_manager.put_event_in_queue("exec_action_failed")
@@ -150,9 +169,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         
         # wait for action reaching threshold
         rospy.loginfo("Waiting for action reaching threshold...")
-        global ACTION_REACH_THRESHOLD
-        ACTION_REACH_THRESHOLD.wait()
-        ACTION_REACH_THRESHOLD.clear()
+        self.action_reach_threshold.wait()
+        self.action_reach_threshold.clear()
 
         self.event_manager.put_event_in_queue("reach_threshold")
         return
