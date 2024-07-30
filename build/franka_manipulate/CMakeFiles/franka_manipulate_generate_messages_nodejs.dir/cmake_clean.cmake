@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "/project/franka_panda_sim_ws/devel/share/gennodejs/ros/franka_manipulate/srv/ExecUsrReq.js"
   "/project/franka_panda_sim_ws/devel/share/gennodejs/ros/franka_manipulate/srv/MoveitPosCtl.js"
   "CMakeFiles/franka_manipulate_generate_messages_nodejs"
 )

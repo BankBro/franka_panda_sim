@@ -1,0 +1,2 @@
+set(franka_predict_action_MESSAGE_FILES "")
+set(franka_predict_action_SERVICE_FILES "/project/franka_panda_sim_ws/src/franka_predict_action/srv/ClearActionQueue.srv;/project/franka_panda_sim_ws/src/franka_predict_action/srv/FetchSingleAction.srv;/project/franka_panda_sim_ws/src/franka_predict_action/srv/PredictAction.srv;/project/franka_panda_sim_ws/src/franka_predict_action/srv/StoreNewActionToQueue.srv")

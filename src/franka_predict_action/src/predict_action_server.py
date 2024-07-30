@@ -3,6 +3,7 @@
 import rospy
 import requests
 import json_numpy
+import traceback
 
 json_numpy.patch()
 import numpy as np
@@ -27,13 +28,15 @@ class ImageSubscriber():
         # Subscribe to the image topic.
         self.subscribe_topic = rospy.get_param("~third_view_rgb")
         rospy.Subscriber(self.subscribe_topic, RosImage, self.handle_third_view_image)
+        rospy.loginfo(f"Subscribed to {self.subscribe_topic}")
 
     def handle_third_view_image(self, rgb_image: RosImage):
         self.img_mutex.acquire()
         try:
             self.last_img_np = self.bridge.imgmsg_to_cv2(rgb_image, "rgb8")
-        except CvBridgeError as e:
-            rospy.logerr(e)
+        # except CvBridgeError as e:
+        except Exception as e:
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
         finally:
             self.img_mutex.release()
@@ -54,6 +57,7 @@ class PredictActionServer():
         }
         self.predict_action = rospy.get_param("~prediction_service")
         rospy.Service(self.predict_action, PredictAction, self.handle_predict_action)
+        rospy.loginfo(f"Prediction action service{self.predict_action} is ready.")
 
     def handle_predict_action(self, request: PredictActionRequest) -> PredictActionResponse:
         model_name = request.model_name
@@ -96,8 +100,9 @@ class PredictActionServer():
                     "unnorm_key": unnorm_key
                 }
             ).json()
-        except requests.exceptions.RequestException as e:
-            rospy.logerr(e)
+        # except requests.exceptions.RequestException as e:
+        except Exception as e:
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
         else:
             return action

@@ -3,6 +3,6 @@ prefix=/project/franka_panda_sim_ws/devel
 Name: franka_predict_action
 Description: Description of franka_predict_action
 Version: 0.0.0
-Cflags: 
+Cflags: -I/project/franka_panda_sim_ws/devel/include
 Libs: -L${prefix}/lib 
-Requires: 
+Requires: rospy std_msgs message_runtime

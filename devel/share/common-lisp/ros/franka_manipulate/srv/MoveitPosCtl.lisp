@@ -163,10 +163,10 @@
   "945ea5a2f427feb9ae87e22a769e0733")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<MoveitPosCtl-request>)))
   "Returns full string definition for message of type '<MoveitPosCtl-request>"
-  (cl:format cl:nil "# position in world frame, unit: meter~%float32 x~%float32 y~%float32 z~%~%# Euler angles(intrinsic rotation), unit: radian~%float32 yaw~%float32 pitch~%float32 roll~%~%~%~%"))
+  (cl:format cl:nil "# position in world frame, unit: meter~%float32 x~%float32 y~%float32 z~%~%# Euler angles(intrinsic rotation), unit: radian~%float32 yaw    # z axis~%float32 pitch  # y axis~%float32 roll   # x axis~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'MoveitPosCtl-request)))
   "Returns full string definition for message of type 'MoveitPosCtl-request"
-  (cl:format cl:nil "# position in world frame, unit: meter~%float32 x~%float32 y~%float32 z~%~%# Euler angles(intrinsic rotation), unit: radian~%float32 yaw~%float32 pitch~%float32 roll~%~%~%~%"))
+  (cl:format cl:nil "# position in world frame, unit: meter~%float32 x~%float32 y~%float32 z~%~%# Euler angles(intrinsic rotation), unit: radian~%float32 yaw    # z axis~%float32 pitch  # y axis~%float32 roll   # x axis~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <MoveitPosCtl-request>))
   (cl:+ 0
      4

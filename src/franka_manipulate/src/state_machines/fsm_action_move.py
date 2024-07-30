@@ -1,36 +1,42 @@
 #!/usr/bin/env python
 
+import rospy
 import math
-from common import *
-from event_master_2 import EventManager
+
+from common import ThreadedStateMachine, TFManager
+from event_master import EventManager
+from global_vars import global_vars
 
 
-states = ['init', 'moving']
+class ActionMoveFSM(ThreadedStateMachine):
+    def __init__(self, event_manager: EventManager):
+        self.fsm_states = [
+            {'name': 'init',   'on_enter': 'init_callback'},
+            {'name': 'moving', 'on_enter': 'moving_callback'},
+        ]
+        self.fsm_transitions = [
+            {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
+            {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
+            {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
+            {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
+        ]
+        self.fsm_initial_state = "init"
+        super().__init__(self.fsm_states, self.fsm_transitions, self.fsm_initial_state)
 
-transitions = [
-    {'trigger': 'fetch_ok_queue_remain', 'source': 'init',   'dest': 'moving'},
-    {'trigger': 'fetch_ok_queue_empty',  'source': 'init',   'dest': 'moving'},
-    {'trigger': 'reach_threshold',       'source': 'moving', 'dest': 'init'},
-    {'trigger': 'exec_action_failed',    'source': 'moving', 'dest': 'init'},
-]
-
-class ActionMoveFSM():
-    def __init__(self):
         self.name = "action_move"
-        self.reference_frame = "world"
-        self.end_effector_link = "panda_grip_center"
-        self.action_distance = None
+        self.reference_frame = global_vars.get("REFERENCE_FRAME")
+        self.end_effector_frame = global_vars.get("END_EFFECTOR_FRAME")
+        self.action_threshold = global_vars.get("ACTION_THRESHOLD")
+        self.action_distance = None  # an action distance from one source to one target
+        self.event_manager = event_manager
         self.tf_manager = TFManager()
 
-        ACTION_REACH_THRESHOLD.clear()
-
-        # iniit fsm
-        self.machine = Machine(model=self, states=states, transitions=transitions, initial='init')
-        # define each callback function while entering each state
-        self.machine.on_enter_init(self.init_callback)
-        self.machine.on_enter_moving(self.moving_callback)
+        self.action_reach_threshold = global_vars.get("ACTION_REACH_THRESHOLD")
+        self.action_reach_threshold.clear()
+        return
 
     def init_callback(self):
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
         return
     
     @staticmethod
@@ -40,32 +46,29 @@ class ActionMoveFSM():
         dz = pos1[2] - pos2[2]
         return math.sqrt(dx**2 + dy**2 + dz**2)
 
-    def _if_reach_threshold(self):
-        current_pos, _ = self.tf_manager.get_link_pos(REFERENCE_FRAME, END_EFFECTOR_FRAME)
+    def _if_reach_threshold(self, target_pos):
+        current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
         current_pos = [current_pos[0], current_pos[1], current_pos[2]]
+        diff = ActionMoveFSM._get_distance(current_pos, target_pos)
 
-        with TARGET_POS_MUTEX:
-            diff = ActionMoveFSM._get_distance(current_pos, TARGET_POS)
-
-        if diff / self.action_distance < ACTION_THRESHOLD:
+        if diff / self.action_distance < self.action_threshold:
             return True
 
         return False
 
     def moving_callback(self):
-        global ACTION_REACH_THRESHOLD
+        rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
+        self.action_reach_threshold.clear()  # Set tag as False.
 
-        with SOURCE_POS_MUTEX:
-            with TARGET_POS_MUTEX:
-                self.action_distance = ActionMoveFSM._get_distance(SOURCE_POS, TARGET_POS)
+        source_pos = global_vars.get("SOURCE_POS")
+        target_pos = global_vars.get("TARGET_POS")
+        self.action_distance = ActionMoveFSM._get_distance(source_pos, target_pos)
 
         rate = rospy.Rate(10)
-        while True:
+        while not rospy.is_shutdown():
             # check if the action is reaching the threshold
-            if self._if_reach_threshold():
-                # Set tag as True.
-                ACTION_REACH_THRESHOLD.set()
-                self.event_manager.put_event_in_queue("reach_threshold")
-                break            
+            if self._if_reach_threshold(target_pos):
+                self.action_reach_threshold.set() # Set tag as True.
+                break
             rate.sleep()
         return

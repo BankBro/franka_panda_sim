@@ -1,7 +1,7 @@
 # generated from genmsg/cmake/pkg-genmsg.context.in
 
 messages_str = ""
-services_str = "/project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv"
+services_str = "/project/franka_panda_sim_ws/src/franka_manipulate/srv/ExecUsrReq.srv;/project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv"
 pkg_name = "franka_manipulate"
 dependencies_str = "std_msgs"
 langs = "gencpp;geneus;genlisp;gennodejs;genpy"

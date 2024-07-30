@@ -38,7 +38,10 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/franka_manipulate/srv" TYPE FILE FILES "/project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/franka_manipulate/srv" TYPE FILE FILES
+    "/project/franka_panda_sim_ws/src/franka_manipulate/srv/ExecUsrReq.srv"
+    "/project/franka_panda_sim_ws/src/franka_manipulate/srv/MoveitPosCtl.srv"
+    )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)

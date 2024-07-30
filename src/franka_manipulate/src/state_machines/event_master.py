@@ -1,35 +1,131 @@
 #!/usr/bin/env python
 
 import rospy
+import queue
+import threading
+import traceback
 
-from franka_manipulate.srv import EventPostToServer, EventPostToServerRequest, EventPostToServerResponse
-from franka_manipulate.msg import EventPublish
 
-
-class EventMaster:
-    """
-    This class is to receive event from one single FSM(by 'event_receive') 
-    and post this event to all FSM(by 'event_publish').
-    """
+class EventManager():
     def __init__(self):
-        # Init event publisher, event from which is posted to all FSM.
-        self.event_publisher = rospy.Publisher("event_publish", EventPublish, queue_size=10)
+        self.event_queue = queue.Queue()
+        self.listeners = []
+        self.listeners_mutex = threading.Lock()
+        self.running = threading.Event()  # broadcast thread running flag, default False
+        self.broadcast_thread = None
 
-        # Init event receiver, whose event is from one single FSM.
-        rospy.Service("event_receive", EventPostToServer, self.handle_event_post_to_all_FSM)
+        self._start()
+        rospy.loginfo("Event master is ready.")
+        return
 
-    def handle_event_post_to_all_FSM(self, request: EventPostToServerRequest) -> EventPostToServerResponse:
-        event_publish = EventPublish()
-        event_publish.event = request.event
-        event_publish.event_time = rospy.Time.now()
-        self.event_publisher.publish(event_publish)
+    def _start(self):
+        """
+        start the event broadcast thread
+        """
+        if not self.running.is_set():
+            self.running.set()  # set flag as True
+            self.broadcast_thread = threading.Thread(target=self._broadcast_event)
+            self.broadcast_thread.start()
+        return
 
-        event_post = EventPostToServerResponse()
-        event_post.post_ret = True
-        return event_post
+    # def stop(self):
+    #     """
+    #     stop the event broadcast thread
+    #     """
+    #     if self.broadcast_thread and self.broadcast_thread.is_alive():
+    #         self.broadcast_thread.join()
+    #         rospy.loginfo("Event master exit.")
+
+    #     self.running.clear()  # set flag as False
+    #     rospy.loginfo("Event master is not running no need to exit.")
+    #     return
+    
+    def stop(self):
+        """
+        stop the event broadcast thread
+        """
+        self.event_queue.put("None")
+        self.broadcast_thread.join()
+        rospy.loginfo("Event master has exited.")
+        return
+
+    def register_listener(self, listener_dict):
+        self.listeners_mutex.acquire()
+        for name, listener in listener_dict.items():
+            if listener not in self.listeners:
+                self.listeners.append(listener)
+                rospy.loginfo(f"Registered listener: {name}")
+        self.listeners_mutex.release()
+        rospy.loginfo("Register listeners have done.")
+        return
+
+    def unregister_listener(self, listener):
+        self.listeners_mutex.acquire()
+        if listener in self.listeners:
+            self.listeners.remove(listener)
+            rospy.loginfo(f"Unregistered listener: {listener.name}")
+        self.listeners_mutex.release()
+        return
+
+    def put_event_in_queue(self, event: str):
+        """
+        Put an event into the event master queue.
+
+        :param event: The event object to be broadcasted to all registered listeners.
+        """
+        if self.running.is_set():
+            self.event_queue.put(event)
+            rospy.loginfo(f"Put event({event}) into event master queue.")
+        else:
+            rospy.logwarn("EventManager is not running, cannot put event in queue.")
+        return
+
+    def _if_event_valid(self, fsm_instance, event):
+        """
+        To check if the event is in the state machine.
+        """
+        return any(transition['trigger'] == event for transition in fsm_instance.fsm_transitions)
+
+    def _send_event_to_fsm(self, fsm_instance, event: str):
+        # if event is not one of FSM's trigger event.
+        if not self._if_event_valid(fsm_instance, event):
+            rospy.logwarn(f"Event({event}) is not valid for FSM({fsm_instance.name}).")
+            return
+
+        try:
+            fsm_instance.put_event(event)  # non-blocking
+        except Exception as e:
+            rospy.logwarn(f"Event({event}) trigger failed.")
+        return
+    
+    def _broadcast_event(self):
+        """
+        Fetch event from queue and broadcast to all listeners by calling listener's callback.
+        """
+        rospy.loginfo("Event master is broadcasting event...")
+        while self.running.is_set():
+            try:
+                event = self.event_queue.get(timeout=None)
+                rospy.loginfo(f"Got one event from event master queue: {event}.")
+
+                if event == "None":
+                    rospy.logwarn("Event master got event(None), exit.")
+                    self.running.clear()  # set flag as False
+                    break
+
+                self.listeners_mutex.acquire()
+                for listener in self.listeners:
+                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}).")
+                    self._send_event_to_fsm(listener, event)
+                    rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}), done.")
+                self.listeners_mutex.release()
+
+            except Exception as e:
+                rospy.logwarn("Broadcast occur error.")
+                rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
 
 
-if __name__ == "__main__":
-    rospy.init_node("event_master")
-    EventMaster()
-    rospy.spin()
+            finally:
+                self.event_queue.task_done()
+        rospy.loginfo("Event master exit.")
+        return

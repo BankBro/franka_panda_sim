@@ -182,9 +182,9 @@ struct Definition< ::franka_manipulate::MoveitPosCtlRequest_<ContainerAllocator>
 "float32 z\n"
 "\n"
 "# Euler angles(intrinsic rotation), unit: radian\n"
-"float32 yaw\n"
-"float32 pitch\n"
-"float32 roll\n"
+"float32 yaw    # z axis\n"
+"float32 pitch  # y axis\n"
+"float32 roll   # x axis\n"
 "\n"
 ;
   }
