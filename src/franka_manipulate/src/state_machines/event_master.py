@@ -3,6 +3,7 @@
 import rospy
 import queue
 import threading
+import traceback
 
 
 class EventManager():
@@ -93,8 +94,7 @@ class EventManager():
 
         try:
             fsm_instance.put_event(event)  # non-blocking
-        # except MachineError as e:
-        except:
+        except Exception as e:
             rospy.logwarn(f"Event({event}) trigger failed.")
         return
     
@@ -120,8 +120,10 @@ class EventManager():
                     rospy.loginfo(f"Broadcasted event({event}) to listener({listener.name}), state({listener.state}), done.")
                 self.listeners_mutex.release()
 
-            except:
-                rospy.loginfo("Broadcast occur error.")
+            except Exception as e:
+                rospy.logwarn("Broadcast occur error.")
+                rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
+
 
             finally:
                 self.event_queue.task_done()

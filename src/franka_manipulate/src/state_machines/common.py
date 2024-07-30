@@ -3,6 +3,7 @@
 import rospy
 import queue
 import threading
+import traceback
 from transitions import Machine
 from typing import Dict, Type
 from tf.transformations import euler_from_quaternion
@@ -103,7 +104,8 @@ class ThreadedStateMachine:
             else:
                 rospy.logwarn(f"Fsm({self.name}), state({self.state}) does not have event({event}).")
         except Exception as e:
-            rospy.logwarn(f"Exception occurred: {e}. Event({event}), Fsm({self.name}), state({self.state}).")
+            rospy.logwarn(f"Exception occurred. Event({event}), Fsm({self.name}), state({self.state}).")
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
         return
     
     def put_event(self, event: str):

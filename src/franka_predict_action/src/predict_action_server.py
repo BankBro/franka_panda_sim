@@ -3,6 +3,7 @@
 import rospy
 import requests
 import json_numpy
+import traceback
 
 json_numpy.patch()
 import numpy as np
@@ -33,8 +34,9 @@ class ImageSubscriber():
         self.img_mutex.acquire()
         try:
             self.last_img_np = self.bridge.imgmsg_to_cv2(rgb_image, "rgb8")
-        except CvBridgeError as e:
-            rospy.logerr(e)
+        # except CvBridgeError as e:
+        except Exception as e:
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
         finally:
             self.img_mutex.release()
@@ -99,7 +101,7 @@ class PredictActionServer():
                 }
             ).json()
         except requests.exceptions.RequestException as e:
-            rospy.logerr(e)
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
         else:
             return action
