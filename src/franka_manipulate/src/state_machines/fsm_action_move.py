@@ -48,6 +48,7 @@ class ActionMoveFSM(ThreadedStateMachine):
 
     def _if_reach_threshold(self, target_pos):
         if self.action_reach_threshold.is_set():
+            rospy.logwarn(f"FSM({self.name}) reach threshold.")
             return True
         
         current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
@@ -69,6 +70,7 @@ class ActionMoveFSM(ThreadedStateMachine):
 
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
+            rospy.loginfo(f"FSM({self.name}) moving to target pos.")
             # check if the action is reaching the threshold
             if self._if_reach_threshold(target_pos):
                 self.action_reach_threshold.set() # Set tag as True.
