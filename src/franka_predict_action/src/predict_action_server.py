@@ -2,15 +2,15 @@
 
 import rospy
 import requests
+import json
 import json_numpy
-import traceback
-
 json_numpy.patch()
+import traceback
 import numpy as np
 import threading
 from itertools import chain
-from cv_bridge import CvBridge, CvBridgeError
 
+from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image as RosImage
 from franka_predict_action.srv import (
     PredictAction,
@@ -92,14 +92,19 @@ class PredictActionServer():
         try:
             # TODO: 这里只返回action吗？有没有返回错误码什么的吗？
             ip_address = rospy.get_param("~server_address")
+            json_data=json.dumps({"image": img,
+                                  "instruction": instruction,
+                                  "unnorm_key": unnorm_key})
+
             action = requests.post(
                 ip_address,
-                json={
-                    "image": img,
-                    "instruction": instruction,
-                    "unnorm_key": unnorm_key
-                }
-            ).json()
+                data=json_data,
+                headers={"Content-Type": "application/json"}
+            ).text
+
+            action=json.loads(action)
+            rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
+
         # except requests.exceptions.RequestException as e:
         except Exception as e:
             rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
