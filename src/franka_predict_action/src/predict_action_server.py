@@ -59,10 +59,21 @@ class PredictActionServer():
         rospy.Service(self.predict_action, PredictAction, self.handle_predict_action)
         rospy.loginfo(f"Prediction action service{self.predict_action} is ready.")
 
+    def _change_delta_action_to_abs(self, delta_action, source_action):
+        abs_action = []
+
+        for i in range(len(delta_action)):
+            abs_action.append([])
+            for j in range(6):
+                abs_action[i].append(delta_action[i][j] + source_action[j])
+        
+        return abs_action
+    
     def handle_predict_action(self, request: PredictActionRequest) -> PredictActionResponse:
         model_name = request.model_name
         instruction = request.instruction
         unnorm_key = request.unnorm_key
+        source_action = request.source_action
 
         response = PredictActionResponse()
 
@@ -70,36 +81,27 @@ class PredictActionServer():
         img = self.img_subscriber.get_third_view_image().astype(np.uint8)
 
         # Send request to server according to model name.
-        action = self.handle_predict_action_tbl[model_name](img, instruction, unnorm_key)
+        delta_action = self.handle_predict_action_tbl[model_name](img, instruction, unnorm_key)
+        abs_action = self._change_delta_action_to_abs(delta_action, source_action)
 
         # Check if action is legal or not.
-        if not isinstance(action, list):
+        if not isinstance(abs_action, list):
             rospy.logerr("Action is not a list! Request to server failed!")
             response.predict_ret = False
         else:
             # Flatten the action list, requiring that the action is a two-dimensional list.
             response.predict_ret = True
-            action_shape = [len(action), len(action[0])]
+            action_shape = [len(abs_action), len(abs_action[0])]
             response.action_shape = action_shape
-            response.action_flat = list(chain.from_iterable(action))
+            response.action_flat = list(chain.from_iterable(abs_action))
             assert len(response.action_flat) == response.action_shape[0] * response.action_shape[1], \
                 "Action shape is not correct!"
 
         return response
-    
-    def _change_openvla_predict_action_to_list(self, action):
-        if not isinstance(action, np.ndarray):
-            rospy.logerr("Action is not a numpy array! Request to server failed!")
-            return None
-        
-        action.tolist()
-        action = [action]
-        return action
 
     def handle_send_req_to_openvla(self, img: np.ndarray, instruction: str = None, unnorm_key: str = None):
         # Send request to openvla server to get prediction and decode json.
         try:
-            # TODO: 这里只返回action吗？有没有返回错误码什么的吗？
             ip_address = rospy.get_param("~server_address")
             json_data=json.dumps({"image": img,
                                   "instruction": instruction,
@@ -112,16 +114,18 @@ class PredictActionServer():
             ).text
 
             action=json.loads(action)  # np.ndarray
+            
+            # If action is not np.ndarray, something went wrong.
+            if not isinstance(action, np.ndarray):
+                raise Exception("Action is not a numpy array! Request to server failed!")
+            
             rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
-
-            action = self._change_openvla_predict_action_to_list(action)
+            return [action.tolist()]
 
         # except requests.exceptions.RequestException as e:
         except Exception as e:
             rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
             raise
-        else:
-            return action
 
     def handle_send_req_to_octo(self, img: np.ndarray, instruction: str = None, unnorm_key: str = None):
         pass

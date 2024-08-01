@@ -115,8 +115,15 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             request.instruction = self.instruction
             request.unnorm_key = self.unnorm_key
 
+            # Record the source pos when predicting action.
+            source_pos, orientation = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
+            euler = self.tf_manager.get_euler_from_quaternion(orientation)
+            source_action = [source_pos.x, source_pos.y, source_pos.z, euler[0], euler[1], euler[2]]
+            request.source_action = source_action
+
             rospy.wait_for_service("store_new_action_to_queue_service")
             try:
+                # Predict and store action.
                 response: StoreNewActionToQueueResponse = self.predict_store_action(request)
                 if response.store_ret:
                     rospy.loginfo("Predict and store action succeed.")
@@ -131,10 +138,10 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         # Fetch an action succeed, ready to execute the action.
         current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
-        # TODO: the source pos is not the real pos when predict action.
-        source_pos = [current_pos.x, current_pos.y, current_pos.z]
-        global_vars.set("SOURCE_POS", source_pos)
-        rospy.loginfo(f"Fetch current pos({source_pos}).")
+
+        current_pos = [current_pos.x, current_pos.y, current_pos.z]
+        global_vars.set("SOURCE_POS", current_pos)
+        rospy.loginfo(f"Fetch source pos({current_pos}).")
 
         target_pos = [action[0], action[1], action[2]]
         global_vars.set("TARGET_POS", target_pos)
@@ -142,7 +149,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         target_action = action
         global_vars.set("TARGET_ACTION", target_action)
-        rospy.loginfo(f"Fetch target action({target_action}).")  # TODO: TARGET_POS TARGET_ACTION is delta action.
+        rospy.loginfo(f"Fetch target action({target_action}).")
 
         if fetch_ret and queue_size > 0:
             self.event_manager.put_event_in_queue('fetch_ok_queue_remain')
@@ -187,6 +194,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
             rospy.logerr("Execute action failed.")
             self.action_reach_threshold.set()
             self.event_manager.put_event_in_queue("exec_action_failed")
+            # TODO: clear the action queue.
             return
         
         # wait for action reaching threshold
