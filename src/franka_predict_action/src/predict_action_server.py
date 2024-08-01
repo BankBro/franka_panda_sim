@@ -64,7 +64,7 @@ class PredictActionServer():
         instruction = request.instruction
         unnorm_key = request.unnorm_key
 
-        response: PredictActionResponse = PredictActionRequest()
+        response = PredictActionResponse()
 
         # Get image from image subscriber.
         img = self.img_subscriber.get_third_view_image().astype(np.uint8)
@@ -110,9 +110,6 @@ class PredictActionServer():
                 data=json_data,
                 headers={"Content-Type": "application/json"}
             ).text
-
-            if (self._check_openvla_predict_ret(action)):
-                return action
 
             action=json.loads(action)  # np.ndarray
             rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
