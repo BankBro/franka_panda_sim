@@ -58,7 +58,7 @@ class TFManager:
             rospy.logwarn(f"Failed to lookup transform of \"{self.end_effector_link}\".")
             return None, None
     
-    def get_euler_from_quaternion(orientation) -> list:
+    def get_euler_from_quaternion(self, orientation) -> list:
         euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w, axes='rxyz')
         return euler  # [roll, pitch, yaw]
 
@@ -105,7 +105,7 @@ class ThreadedStateMachine:
                 rospy.logwarn(f"Fsm({self.name}), state({self.state}) does not have event({event}).")
         except Exception as e:
             rospy.logwarn(f"Exception occurred. Event({event}), Fsm({self.name}), state({self.state}).")
-            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)))
+            rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)), f"\n{e}")
         return
     
     def put_event(self, event: str):
