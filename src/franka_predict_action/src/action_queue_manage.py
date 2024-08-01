@@ -49,11 +49,12 @@ class ActionQueueManage():
 
         return action_list
 
-    def _get_predict_action(self, model_name: str, instruction: str, unnorm_key: str) -> Tuple[bool, list]:
+    def _get_predict_action(self, model_name: str, instruction: str, unnorm_key: str, source_action: list) -> Tuple[bool, list]:
         request = PredictActionRequest()
         request.model_name = model_name
         request.instruction = instruction
         request.unnorm_key = unnorm_key
+        request.source_action = source_action
 
         # Call predict server to get actions.
         rospy.wait_for_service(
@@ -81,9 +82,10 @@ class ActionQueueManage():
         model_name = request.model_name
         instruction = request.instruction
         unnorm_key = request.unnorm_key
+        source_action =  request.source_action
         response = StoreNewActionToQueueResponse()
 
-        _, action_list = self._get_predict_action(model_name, instruction, unnorm_key)
+        _, action_list = self._get_predict_action(model_name, instruction, unnorm_key, source_action)
         if action_list is None:
             rospy.logerr(f"Store new action failed!")
             response.store_ret = False
