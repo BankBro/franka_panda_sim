@@ -181,7 +181,7 @@ def on_shutdown(event_manager: EventManager, fsm_dict: Dict[str, Type[ThreadedSt
     return
 
 def register_global_vars():
-    global_vars.register_variable("MAX_EXEC_TIME", 5)
+    global_vars.register_variable("MAX_EXEC_TIME", 15)
     global_vars.register_variable("ACTION_THRESHOLD", 0.35) # An action is considered reached threshold when:
                                                             # - The percentage of the distance between
                                                             #   the current position and the target position

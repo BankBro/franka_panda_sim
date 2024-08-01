@@ -32,7 +32,7 @@ class MoveitPositionController:
 
         # set tolerance
         self.arm.set_goal_orientation_tolerance(0.01)
-        self.arm.set_goal_position_tolerance(0.05)
+        self.arm.set_goal_position_tolerance(0.001)
 
         self.arm_go_named_target("home")
 
