@@ -59,7 +59,7 @@ class TFManager:
             return None, None
     
     def get_euler_from_quaternion(self, orientation) -> list:
-        euler = euler_from_quaternion(orientation.x, orientation.y, orientation.z, orientation.w, axes='rxyz')
+        euler = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w], axes='rxyz')
         return euler  # [roll, pitch, yaw]
 
 
