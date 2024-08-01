@@ -196,6 +196,7 @@ def register_global_vars():
 
     global_vars.register_variable("SOURCE_POS", [])
     global_vars.register_variable("TARGET_POS", [])
+    global_vars.register_variable("TARGET_ACTION", [])
 
     global_vars.register_variable("USR_REQ_DONE", threading.Event(), with_lock=False)  # default: False
     global_vars.register_variable("ACTION_REACH_THRESHOLD", threading.Event(), with_lock=False)

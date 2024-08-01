@@ -70,6 +70,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         self.predict_store_action = rospy.ServiceProxy("store_new_action_to_queue_service", StoreNewActionToQueue)
         self.clear_action_queue = rospy.ServiceProxy("clear_action_queue_service", ClearActionQueue)
         return
+
     def before_usr_req(self):
         self.model_name = global_vars.get("REQ_MODEL_NAME")
         self.instruction = global_vars.get("REQ_INSTRUCTION")
@@ -139,6 +140,10 @@ class ActionTaskManageFSM(ThreadedStateMachine):
         global_vars.set("TARGET_POS", target_pos)
         rospy.loginfo(f"Fetch target pos({target_pos}).")
 
+        target_action = action
+        global_vars.set("TARGET_ACTION", target_action)
+        rospy.loginfo(f"Fetch target action({target_action}).")  # TODO: TARGET_POS TARGET_ACTION is delta action.
+
         if fetch_ret and queue_size > 0:
             self.event_manager.put_event_in_queue('fetch_ok_queue_remain')
         elif fetch_ret and queue_size == 0:
@@ -166,14 +171,14 @@ class ActionTaskManageFSM(ThreadedStateMachine):
     def exec_action_callback(self):
         rospy.loginfo(f"FSM({self.name}) enter stage({self.state}).")
 
-        action = global_vars.get("TARGET_POS")
+        action = global_vars.get("TARGET_ACTION")
         request = MoveitPosCtlRequest()
         request.x = action[0]
         request.y = action[1]
         request.z = action[2]
-        request.yaw = action[3]
+        request.roll = action[3]
         request.pitch = action[4]
-        request.roll = action[5]
+        request.yaw = action[5]  # TODO: the order is correct?
 
         rospy.wait_for_service("moveit_pos_ctl_service")
         response: MoveitPosCtlResponse = self.exec_action(request)  # Async call.

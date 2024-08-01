@@ -48,7 +48,7 @@ class ActionMoveFSM(ThreadedStateMachine):
 
     def _if_reach_threshold(self, target_pos):
         current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
-        current_pos = [current_pos[0], current_pos[1], current_pos[2]]
+        current_pos = [current_pos.x, current_pos.y, current_pos.z]
         diff = ActionMoveFSM._get_distance(current_pos, target_pos)
 
         if diff / self.action_distance < self.action_threshold:
