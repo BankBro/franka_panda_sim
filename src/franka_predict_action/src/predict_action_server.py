@@ -64,7 +64,7 @@ class PredictActionServer():
         instruction = request.instruction
         unnorm_key = request.unnorm_key
 
-        response: PredictActionResponse = PredictActionRequest()
+        response = PredictActionResponse()
 
         # Get image from image subscriber.
         img = self.img_subscriber.get_third_view_image().astype(np.uint8)
@@ -79,13 +79,22 @@ class PredictActionServer():
         else:
             # Flatten the action list, requiring that the action is a two-dimensional list.
             response.predict_ret = True
-            response.action_shape[0] = len(action)
-            response.action_shape[1] = len(action[0])
+            action_shape = [len(action), len(action[0])]
+            response.action_shape = action_shape
             response.action_flat = list(chain.from_iterable(action))
             assert len(response.action_flat) == response.action_shape[0] * response.action_shape[1], \
                 "Action shape is not correct!"
 
         return response
+    
+    def _change_openvla_predict_action_to_list(self, action):
+        if not isinstance(action, np.ndarray):
+            rospy.logerr("Action is not a numpy array! Request to server failed!")
+            return None
+        
+        action.tolist()
+        action = [action]
+        return action
 
     def handle_send_req_to_openvla(self, img: np.ndarray, instruction: str = None, unnorm_key: str = None):
         # Send request to openvla server to get prediction and decode json.
@@ -102,8 +111,10 @@ class PredictActionServer():
                 headers={"Content-Type": "application/json"}
             ).text
 
-            action=json.loads(action)
+            action=json.loads(action)  # np.ndarray
             rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
+
+            action = self._change_openvla_predict_action_to_list(action)
 
         # except requests.exceptions.RequestException as e:
         except Exception as e:

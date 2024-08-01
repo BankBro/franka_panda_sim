@@ -2,7 +2,7 @@
   <!-- Start the action server -->
   <node name="predict_action_server" pkg="franka_predict_action" type="predict_action_server.py" output="screen">
     <!-- Server address -->
-    <param name="server_address" value="http://192.168.10.8:8000/act" />
+    <param name="server_address" value="http://192.168.10.45:18000/act" />
     <!-- Camara Topic -->
     <param name="third_view_rgb" value="/third_view_camera/rgb/image_raw" />
 
