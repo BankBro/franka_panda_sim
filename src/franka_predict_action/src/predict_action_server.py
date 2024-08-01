@@ -73,10 +73,12 @@ class PredictActionServer():
         action = self.handle_predict_action_tbl[model_name](img, instruction, unnorm_key)
 
         # Check if action is legal or not.
-        if not isinstance(action, list):
-            rospy.logerr("Action is not a list! Request to server failed!")
+        if not isinstance(action, np.ndarray):
+            rospy.logerr("Action is not a numpy array! Request to server failed!")
             response.predict_ret = False
         else:
+            action = action.tolist()
+            
             # Flatten the action list, requiring that the action is a two-dimensional list.
             response.predict_ret = True
             response.action_shape[0] = len(action)
@@ -102,7 +104,7 @@ class PredictActionServer():
                 headers={"Content-Type": "application/json"}
             ).text
 
-            action=json.loads(action)
+            action=json.loads(action)  # np.ndarray
             rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
 
         # except requests.exceptions.RequestException as e:
