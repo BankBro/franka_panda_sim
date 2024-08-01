@@ -54,8 +54,11 @@ class ActionMoveFSM(ThreadedStateMachine):
         current_pos, _ = self.tf_manager.get_link_pos(self.reference_frame, self.end_effector_frame)
         current_pos = [current_pos.x, current_pos.y, current_pos.z]
         diff = ActionMoveFSM._get_distance(current_pos, target_pos)
+        
+        ret = diff / self.action_distance < self.action_threshold
+        rospy.loginfo(f"now diff: {diff}, threshold: {self.action_threshold}, ret: {ret}")
 
-        if diff / self.action_distance < self.action_threshold:
+        if ret:
             return True
 
         return False
