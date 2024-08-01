@@ -156,13 +156,13 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         if self.usr_req_done.is_set():
             # User's request has been done, fsm stop working.
-            rospy.loginfo("FSM({self.name}) check, stop exec.")
+            rospy.logerr("FSM({self.name}) check, stop exec.")
             self.event_manager.put_event_in_queue('stop_exec')
 
             # clear the action queue.
+            rospy.wait_for_service("clear_action_queue_service")
             request = ClearActionQueueRequest()
             self.clear_action_queue(request)
-            rospy.wait_for_service("clear_action_queue_service")
 
         else:
             self.event_manager.put_event_in_queue('keep_exec')
