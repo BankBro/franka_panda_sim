@@ -56,7 +56,7 @@ class ActionMoveFSM(ThreadedStateMachine):
         diff = ActionMoveFSM._get_distance(current_pos, target_pos)
         
         ret = diff / self.action_distance < self.action_threshold
-        rospy.loginfo(f"now diff: {diff}, threshold: {self.action_threshold}, ret: {ret}")
+        rospy.loginfo(f"now: {diff}/{self.action_distance},  percent: {diff / self.action_distance}")
 
         if ret:
             return True
