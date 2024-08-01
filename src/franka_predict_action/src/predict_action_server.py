@@ -73,21 +73,28 @@ class PredictActionServer():
         action = self.handle_predict_action_tbl[model_name](img, instruction, unnorm_key)
 
         # Check if action is legal or not.
-        if not isinstance(action, np.ndarray):
-            rospy.logerr("Action is not a numpy array! Request to server failed!")
+        if not isinstance(action, list):
+            rospy.logerr("Action is not a list! Request to server failed!")
             response.predict_ret = False
         else:
-            action = action.tolist()
-            
             # Flatten the action list, requiring that the action is a two-dimensional list.
             response.predict_ret = True
-            response.action_shape[0] = len(action)
-            response.action_shape[1] = len(action[0])
+            action_shape = [len(action), len(action[0])]
+            response.action_shape = action_shape
             response.action_flat = list(chain.from_iterable(action))
             assert len(response.action_flat) == response.action_shape[0] * response.action_shape[1], \
                 "Action shape is not correct!"
 
         return response
+    
+    def _change_openvla_predict_action_to_list(self, action):
+        if not isinstance(action, np.ndarray):
+            rospy.logerr("Action is not a numpy array! Request to server failed!")
+            return None
+        
+        action.tolist()
+        action = [action]
+        return action
 
     def handle_send_req_to_openvla(self, img: np.ndarray, instruction: str = None, unnorm_key: str = None):
         # Send request to openvla server to get prediction and decode json.
@@ -104,8 +111,13 @@ class PredictActionServer():
                 headers={"Content-Type": "application/json"}
             ).text
 
+            if (self._check_openvla_predict_ret(action)):
+                return action
+
             action=json.loads(action)  # np.ndarray
             rospy.loginfo(f"Predict action({action}, type:{type(action)}) successfully.")
+
+            action = self._change_openvla_predict_action_to_list(action)
 
         # except requests.exceptions.RequestException as e:
         except Exception as e:
