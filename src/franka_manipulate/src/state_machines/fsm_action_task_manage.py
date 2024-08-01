@@ -185,6 +185,7 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
         if not response.go_ret:
             rospy.logerr("Execute action failed.")
+            self.action_reach_threshold.set()
             self.event_manager.put_event_in_queue("exec_action_failed")
             return
         
