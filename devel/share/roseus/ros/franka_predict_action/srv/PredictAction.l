@@ -20,7 +20,7 @@
 
 (defclass franka_predict_action::PredictActionRequest
   :super ros::object
-  :slots (_model_name _instruction _unnorm_key ))
+  :slots (_model_name _instruction _unnorm_key _source_action ))
 
 (defmethod franka_predict_action::PredictActionRequest
   (:init
@@ -28,11 +28,13 @@
     ((:model_name __model_name) "")
     ((:instruction __instruction) "")
     ((:unnorm_key __unnorm_key) "")
+    ((:source_action __source_action) (make-array 0 :initial-element 0.0 :element-type :float))
     )
    (send-super :init)
    (setq _model_name (string __model_name))
    (setq _instruction (string __instruction))
    (setq _unnorm_key (string __unnorm_key))
+   (setq _source_action __source_action)
    self)
   (:model_name
    (&optional __model_name)
@@ -43,6 +45,9 @@
   (:unnorm_key
    (&optional __unnorm_key)
    (if __unnorm_key (setq _unnorm_key __unnorm_key)) _unnorm_key)
+  (:source_action
+   (&optional __source_action)
+   (if __source_action (setq _source_action __source_action)) _source_action)
   (:serialization-length
    ()
    (+
@@ -52,6 +57,8 @@
     4 (length _instruction)
     ;; string _unnorm_key
     4 (length _unnorm_key)
+    ;; float32[] _source_action
+    (* 4    (length _source_action)) 4
     ))
   (:serialize
    (&optional strm)
@@ -63,6 +70,11 @@
        (write-long (length _instruction) s) (princ _instruction s)
      ;; string _unnorm_key
        (write-long (length _unnorm_key) s) (princ _unnorm_key s)
+     ;; float32[] _source_action
+     (write-long (length _source_action) s)
+     (dotimes (i (length _source_action))
+       (sys::poke (elt _source_action i) (send s :buffer) (send s :count) :float) (incf (stream-count s) 4)
+       )
      ;;
      (if (null strm) (get-output-stream-string s))))
   (:deserialize
@@ -73,6 +85,13 @@
      (let (n) (setq n (sys::peek buf ptr- :integer)) (incf ptr- 4) (setq _instruction (subseq buf ptr- (+ ptr- n))) (incf ptr- n))
    ;; string _unnorm_key
      (let (n) (setq n (sys::peek buf ptr- :integer)) (incf ptr- 4) (setq _unnorm_key (subseq buf ptr- (+ ptr- n))) (incf ptr- n))
+   ;; float32[] _source_action
+   (let (n)
+     (setq n (sys::peek buf ptr- :integer)) (incf ptr- 4)
+     (setq _source_action (instantiate float-vector n))
+     (dotimes (i n)
+     (setf (elt _source_action i) (sys::peek buf ptr- :float)) (incf ptr- 4)
+     ))
    ;;
    self)
   )
@@ -151,7 +170,7 @@
   :super ros::object
   :slots ())
 
-(setf (get franka_predict_action::PredictAction :md5sum-) "ae8dd43aecc2d95dbde2901ca04451f5")
+(setf (get franka_predict_action::PredictAction :md5sum-) "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (setf (get franka_predict_action::PredictAction :datatype-) "franka_predict_action/PredictAction")
 (setf (get franka_predict_action::PredictAction :request) franka_predict_action::PredictActionRequest)
 (setf (get franka_predict_action::PredictAction :response) franka_predict_action::PredictActionResponse)
@@ -159,12 +178,13 @@
 (defmethod franka_predict_action::PredictActionRequest
   (:response () (instance franka_predict_action::PredictActionResponse :init)))
 
-(setf (get franka_predict_action::PredictActionRequest :md5sum-) "ae8dd43aecc2d95dbde2901ca04451f5")
+(setf (get franka_predict_action::PredictActionRequest :md5sum-) "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (setf (get franka_predict_action::PredictActionRequest :datatype-) "franka_predict_action/PredictActionRequest")
 (setf (get franka_predict_action::PredictActionRequest :definition-)
       "string model_name   # the name of the model to predict
 string instruction  # the instruction sended to model for predicton
 string unnorm_key   # the dataset of the scene
+float32[] source_action
 
 ---
 
@@ -173,12 +193,13 @@ float32[] action_flat     # the flatten predicted action
 uint8[] action_shape      # the shape of the predicted action: [num_action, action_dim]
 ")
 
-(setf (get franka_predict_action::PredictActionResponse :md5sum-) "ae8dd43aecc2d95dbde2901ca04451f5")
+(setf (get franka_predict_action::PredictActionResponse :md5sum-) "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (setf (get franka_predict_action::PredictActionResponse :datatype-) "franka_predict_action/PredictActionResponse")
 (setf (get franka_predict_action::PredictActionResponse :definition-)
       "string model_name   # the name of the model to predict
 string instruction  # the instruction sended to model for predicton
 string unnorm_key   # the dataset of the scene
+float32[] source_action
 
 ---
 
@@ -189,6 +210,6 @@ uint8[] action_shape      # the shape of the predicted action: [num_action, acti
 
 
 
-(provide :franka_predict_action/PredictAction "ae8dd43aecc2d95dbde2901ca04451f5")
+(provide :franka_predict_action/PredictAction "5d9380490c8e2ad02bd6cf3a25e6df2b")
 
 

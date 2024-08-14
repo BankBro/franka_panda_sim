@@ -13,7 +13,8 @@ def exec_usr_req(exec_usr_req_service):
     request = ExecUsrReqRequest()
     request.model_name = "openVLA"
     request.instruction = "Please pickup the green box."
-    request.unnorm_key = "stanford_hydra_dataset_converted_externally_to_rlds"
+    # request.unnorm_key = "stanford_hydra_dataset_converted_externally_to_rlds"
+    request.unnorm_key = "nyu_franka_play_dataset_converted_externally_to_rlds"
     rospy.loginfo(f"Usr request({request}).")
 
     ret = exec_usr_req_service(request)

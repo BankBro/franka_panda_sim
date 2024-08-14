@@ -8,16 +8,17 @@ import struct
 
 
 class StoreNewActionToQueueRequest(genpy.Message):
-  _md5sum = "c9c6b563258de86117080d1e01c3bf23"
+  _md5sum = "f20a907d4871f5237fac9fa15b15425e"
   _type = "franka_predict_action/StoreNewActionToQueueRequest"
   _has_header = False  # flag to mark the presence of a Header object
-  _full_text = """string model_name   # the name of the model to predict
-string instruction  # the instruction sended to model for predicton
-string unnorm_key   # the dataset of the scene
+  _full_text = """string    model_name        # the name of the model to predict
+string    instruction       # the instruction sended to model for predicton
+string    unnorm_key        # the dataset of the scene
+float32[] source_action     # the pos and euler angle when prediction start
 
 """
-  __slots__ = ['model_name','instruction','unnorm_key']
-  _slot_types = ['string','string','string']
+  __slots__ = ['model_name','instruction','unnorm_key','source_action']
+  _slot_types = ['string','string','string','float32[]']
 
   def __init__(self, *args, **kwds):
     """
@@ -27,7 +28,7 @@ string unnorm_key   # the dataset of the scene
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       model_name,instruction,unnorm_key
+       model_name,instruction,unnorm_key,source_action
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -42,10 +43,13 @@ string unnorm_key   # the dataset of the scene
         self.instruction = ''
       if self.unnorm_key is None:
         self.unnorm_key = ''
+      if self.source_action is None:
+        self.source_action = []
     else:
       self.model_name = ''
       self.instruction = ''
       self.unnorm_key = ''
+      self.source_action = []
 
   def _get_types(self):
     """
@@ -77,6 +81,10 @@ string unnorm_key   # the dataset of the scene
         _x = _x.encode('utf-8')
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
+      length = len(self.source_action)
+      buff.write(_struct_I.pack(length))
+      pattern = '<%sf'%length
+      buff.write(struct.Struct(pattern).pack(*self.source_action))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -116,6 +124,14 @@ string unnorm_key   # the dataset of the scene
         self.unnorm_key = str[start:end].decode('utf-8', 'rosmsg')
       else:
         self.unnorm_key = str[start:end]
+      start = end
+      end += 4
+      (length,) = _struct_I.unpack(str[start:end])
+      pattern = '<%sf'%length
+      start = end
+      s = struct.Struct(pattern)
+      end += s.size
+      self.source_action = s.unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -146,6 +162,10 @@ string unnorm_key   # the dataset of the scene
         _x = _x.encode('utf-8')
         length = len(_x)
       buff.write(struct.Struct('<I%ss'%length).pack(length, _x))
+      length = len(self.source_action)
+      buff.write(_struct_I.pack(length))
+      pattern = '<%sf'%length
+      buff.write(self.source_action.tostring())
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -186,6 +206,14 @@ string unnorm_key   # the dataset of the scene
         self.unnorm_key = str[start:end].decode('utf-8', 'rosmsg')
       else:
         self.unnorm_key = str[start:end]
+      start = end
+      end += 4
+      (length,) = _struct_I.unpack(str[start:end])
+      pattern = '<%sf'%length
+      start = end
+      s = struct.Struct(pattern)
+      end += s.size
+      self.source_action = numpy.frombuffer(str[start:end], dtype=numpy.float32, count=length)
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -312,6 +340,6 @@ def _get_struct_B():
     return _struct_B
 class StoreNewActionToQueue(object):
   _type          = 'franka_predict_action/StoreNewActionToQueue'
-  _md5sum = '5b013e147fda06393de0b2e74bcdcf2c'
+  _md5sum = '5b970674ed98959db123eec4133f376a'
   _request_class  = StoreNewActionToQueueRequest
   _response_class = StoreNewActionToQueueResponse

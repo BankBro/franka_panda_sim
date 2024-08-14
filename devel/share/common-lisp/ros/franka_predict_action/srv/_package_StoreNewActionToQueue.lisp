@@ -5,6 +5,8 @@
           INSTRUCTION
           UNNORM_KEY-VAL
           UNNORM_KEY
+          SOURCE_ACTION-VAL
+          SOURCE_ACTION
           STORE_RET-VAL
           STORE_RET
 ))

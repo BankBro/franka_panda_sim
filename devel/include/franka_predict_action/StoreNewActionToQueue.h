@@ -40,7 +40,7 @@ template<>
 struct MD5Sum< ::franka_predict_action::StoreNewActionToQueue > {
   static const char* value()
   {
-    return "5b013e147fda06393de0b2e74bcdcf2c";
+    return "5b970674ed98959db123eec4133f376a";
   }
 
   static const char* value(const ::franka_predict_action::StoreNewActionToQueue&) { return value(); }

@@ -126,7 +126,7 @@ class MoveitPosCtlRequest {
     float32 y
     float32 z
     
-    # Euler angles(intrinsic rotation), unit: radian
+    # Euler angles(intrinsic rotation), unit: radian  # TODO: order
     float32 yaw    # z axis
     float32 pitch  # y axis
     float32 roll   # x axis

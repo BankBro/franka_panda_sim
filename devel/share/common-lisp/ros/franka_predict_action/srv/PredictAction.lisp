@@ -21,7 +21,12 @@
     :reader unnorm_key
     :initarg :unnorm_key
     :type cl:string
-    :initform ""))
+    :initform "")
+   (source_action
+    :reader source_action
+    :initarg :source_action
+    :type (cl:vector cl:float)
+   :initform (cl:make-array 0 :element-type 'cl:float :initial-element 0.0)))
 )
 
 (cl:defclass PredictAction-request (<PredictAction-request>)
@@ -46,6 +51,11 @@
 (cl:defmethod unnorm_key-val ((m <PredictAction-request>))
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader franka_predict_action-srv:unnorm_key-val is deprecated.  Use franka_predict_action-srv:unnorm_key instead.")
   (unnorm_key m))
+
+(cl:ensure-generic-function 'source_action-val :lambda-list '(m))
+(cl:defmethod source_action-val ((m <PredictAction-request>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader franka_predict_action-srv:source_action-val is deprecated.  Use franka_predict_action-srv:source_action instead.")
+  (source_action m))
 (cl:defmethod roslisp-msg-protocol:serialize ((msg <PredictAction-request>) ostream)
   "Serializes a message object of type '<PredictAction-request>"
   (cl:let ((__ros_str_len (cl:length (cl:slot-value msg 'model_name))))
@@ -66,6 +76,17 @@
     (cl:write-byte (cl:ldb (cl:byte 8 16) __ros_str_len) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 24) __ros_str_len) ostream))
   (cl:map cl:nil #'(cl:lambda (c) (cl:write-byte (cl:char-code c) ostream)) (cl:slot-value msg 'unnorm_key))
+  (cl:let ((__ros_arr_len (cl:length (cl:slot-value msg 'source_action))))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) __ros_arr_len) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) __ros_arr_len) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) __ros_arr_len) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) __ros_arr_len) ostream))
+  (cl:map cl:nil #'(cl:lambda (ele) (cl:let ((bits (roslisp-utils:encode-single-float-bits ele)))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) bits) ostream)))
+   (cl:slot-value msg 'source_action))
 )
 (cl:defmethod roslisp-msg-protocol:deserialize ((msg <PredictAction-request>) istream)
   "Deserializes a message object of type '<PredictAction-request>"
@@ -93,6 +114,20 @@
       (cl:setf (cl:slot-value msg 'unnorm_key) (cl:make-string __ros_str_len))
       (cl:dotimes (__ros_str_idx __ros_str_len msg)
         (cl:setf (cl:char (cl:slot-value msg 'unnorm_key) __ros_str_idx) (cl:code-char (cl:read-byte istream)))))
+  (cl:let ((__ros_arr_len 0))
+    (cl:setf (cl:ldb (cl:byte 8 0) __ros_arr_len) (cl:read-byte istream))
+    (cl:setf (cl:ldb (cl:byte 8 8) __ros_arr_len) (cl:read-byte istream))
+    (cl:setf (cl:ldb (cl:byte 8 16) __ros_arr_len) (cl:read-byte istream))
+    (cl:setf (cl:ldb (cl:byte 8 24) __ros_arr_len) (cl:read-byte istream))
+  (cl:setf (cl:slot-value msg 'source_action) (cl:make-array __ros_arr_len))
+  (cl:let ((vals (cl:slot-value msg 'source_action)))
+    (cl:dotimes (i __ros_arr_len)
+    (cl:let ((bits 0))
+      (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
+    (cl:setf (cl:aref vals i) (roslisp-utils:decode-single-float-bits bits))))))
   msg
 )
 (cl:defmethod roslisp-msg-protocol:ros-datatype ((msg (cl:eql '<PredictAction-request>)))
@@ -103,21 +138,22 @@
   "franka_predict_action/PredictActionRequest")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<PredictAction-request>)))
   "Returns md5sum for a message object of type '<PredictAction-request>"
-  "ae8dd43aecc2d95dbde2901ca04451f5")
+  "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'PredictAction-request)))
   "Returns md5sum for a message object of type 'PredictAction-request"
-  "ae8dd43aecc2d95dbde2901ca04451f5")
+  "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<PredictAction-request>)))
   "Returns full string definition for message of type '<PredictAction-request>"
-  (cl:format cl:nil "string model_name   # the name of the model to predict~%string instruction  # the instruction sended to model for predicton~%string unnorm_key   # the dataset of the scene~%~%~%~%"))
+  (cl:format cl:nil "string model_name   # the name of the model to predict~%string instruction  # the instruction sended to model for predicton~%string unnorm_key   # the dataset of the scene~%float32[] source_action~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'PredictAction-request)))
   "Returns full string definition for message of type 'PredictAction-request"
-  (cl:format cl:nil "string model_name   # the name of the model to predict~%string instruction  # the instruction sended to model for predicton~%string unnorm_key   # the dataset of the scene~%~%~%~%"))
+  (cl:format cl:nil "string model_name   # the name of the model to predict~%string instruction  # the instruction sended to model for predicton~%string unnorm_key   # the dataset of the scene~%float32[] source_action~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <PredictAction-request>))
   (cl:+ 0
      4 (cl:length (cl:slot-value msg 'model_name))
      4 (cl:length (cl:slot-value msg 'instruction))
      4 (cl:length (cl:slot-value msg 'unnorm_key))
+     4 (cl:reduce #'cl:+ (cl:slot-value msg 'source_action) :key #'(cl:lambda (ele) (cl:declare (cl:ignorable ele)) (cl:+ 4)))
 ))
 (cl:defmethod roslisp-msg-protocol:ros-message-to-list ((msg <PredictAction-request>))
   "Converts a ROS message object to a list"
@@ -125,6 +161,7 @@
     (cl:cons ':model_name (model_name msg))
     (cl:cons ':instruction (instruction msg))
     (cl:cons ':unnorm_key (unnorm_key msg))
+    (cl:cons ':source_action (source_action msg))
 ))
 ;//! \htmlinclude PredictAction-response.msg.html
 
@@ -226,10 +263,10 @@
   "franka_predict_action/PredictActionResponse")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<PredictAction-response>)))
   "Returns md5sum for a message object of type '<PredictAction-response>"
-  "ae8dd43aecc2d95dbde2901ca04451f5")
+  "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'PredictAction-response)))
   "Returns md5sum for a message object of type 'PredictAction-response"
-  "ae8dd43aecc2d95dbde2901ca04451f5")
+  "5d9380490c8e2ad02bd6cf3a25e6df2b")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<PredictAction-response>)))
   "Returns full string definition for message of type '<PredictAction-response>"
   (cl:format cl:nil "~%bool predict_ret         # result of prediction~%float32[] action_flat     # the flatten predicted action~%uint8[] action_shape      # the shape of the predicted action: [num_action, action_dim]~%~%~%"))

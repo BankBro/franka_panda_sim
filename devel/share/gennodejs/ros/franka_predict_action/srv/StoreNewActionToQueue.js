@@ -24,6 +24,7 @@ class StoreNewActionToQueueRequest {
       this.model_name = null;
       this.instruction = null;
       this.unnorm_key = null;
+      this.source_action = null;
     }
     else {
       if (initObj.hasOwnProperty('model_name')) {
@@ -44,6 +45,12 @@ class StoreNewActionToQueueRequest {
       else {
         this.unnorm_key = '';
       }
+      if (initObj.hasOwnProperty('source_action')) {
+        this.source_action = initObj.source_action
+      }
+      else {
+        this.source_action = [];
+      }
     }
   }
 
@@ -55,6 +62,8 @@ class StoreNewActionToQueueRequest {
     bufferOffset = _serializer.string(obj.instruction, buffer, bufferOffset);
     // Serialize message field [unnorm_key]
     bufferOffset = _serializer.string(obj.unnorm_key, buffer, bufferOffset);
+    // Serialize message field [source_action]
+    bufferOffset = _arraySerializer.float32(obj.source_action, buffer, bufferOffset, null);
     return bufferOffset;
   }
 
@@ -68,6 +77,8 @@ class StoreNewActionToQueueRequest {
     data.instruction = _deserializer.string(buffer, bufferOffset);
     // Deserialize message field [unnorm_key]
     data.unnorm_key = _deserializer.string(buffer, bufferOffset);
+    // Deserialize message field [source_action]
+    data.source_action = _arrayDeserializer.float32(buffer, bufferOffset, null)
     return data;
   }
 
@@ -76,7 +87,8 @@ class StoreNewActionToQueueRequest {
     length += _getByteLength(object.model_name);
     length += _getByteLength(object.instruction);
     length += _getByteLength(object.unnorm_key);
-    return length + 12;
+    length += 4 * object.source_action.length;
+    return length + 16;
   }
 
   static datatype() {
@@ -86,15 +98,16 @@ class StoreNewActionToQueueRequest {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return 'c9c6b563258de86117080d1e01c3bf23';
+    return 'f20a907d4871f5237fac9fa15b15425e';
   }
 
   static messageDefinition() {
     // Returns full string definition for message
     return `
-    string model_name   # the name of the model to predict
-    string instruction  # the instruction sended to model for predicton
-    string unnorm_key   # the dataset of the scene
+    string    model_name        # the name of the model to predict
+    string    instruction       # the instruction sended to model for predicton
+    string    unnorm_key        # the dataset of the scene
+    float32[] source_action     # the pos and euler angle when prediction start
     
     
     `;
@@ -125,6 +138,13 @@ class StoreNewActionToQueueRequest {
     }
     else {
       resolved.unnorm_key = ''
+    }
+
+    if (msg.source_action !== undefined) {
+      resolved.source_action = msg.source_action;
+    }
+    else {
+      resolved.source_action = []
     }
 
     return resolved;
@@ -206,6 +226,6 @@ class StoreNewActionToQueueResponse {
 module.exports = {
   Request: StoreNewActionToQueueRequest,
   Response: StoreNewActionToQueueResponse,
-  md5sum() { return '5b013e147fda06393de0b2e74bcdcf2c'; },
+  md5sum() { return '5b970674ed98959db123eec4133f376a'; },
   datatype() { return 'franka_predict_action/StoreNewActionToQueue'; }
 };

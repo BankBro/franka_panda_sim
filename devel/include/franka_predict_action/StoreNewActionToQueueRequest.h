@@ -26,12 +26,14 @@ struct StoreNewActionToQueueRequest_
   StoreNewActionToQueueRequest_()
     : model_name()
     , instruction()
-    , unnorm_key()  {
+    , unnorm_key()
+    , source_action()  {
     }
   StoreNewActionToQueueRequest_(const ContainerAllocator& _alloc)
     : model_name(_alloc)
     , instruction(_alloc)
-    , unnorm_key(_alloc)  {
+    , unnorm_key(_alloc)
+    , source_action(_alloc)  {
   (void)_alloc;
     }
 
@@ -45,6 +47,9 @@ struct StoreNewActionToQueueRequest_
 
    typedef std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>> _unnorm_key_type;
   _unnorm_key_type unnorm_key;
+
+   typedef std::vector<float, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<float>> _source_action_type;
+  _source_action_type source_action;
 
 
 
@@ -77,7 +82,8 @@ bool operator==(const ::franka_predict_action::StoreNewActionToQueueRequest_<Con
 {
   return lhs.model_name == rhs.model_name &&
     lhs.instruction == rhs.instruction &&
-    lhs.unnorm_key == rhs.unnorm_key;
+    lhs.unnorm_key == rhs.unnorm_key &&
+    lhs.source_action == rhs.source_action;
 }
 
 template<typename ContainerAllocator1, typename ContainerAllocator2>
@@ -134,12 +140,12 @@ struct MD5Sum< ::franka_predict_action::StoreNewActionToQueueRequest_<ContainerA
 {
   static const char* value()
   {
-    return "c9c6b563258de86117080d1e01c3bf23";
+    return "f20a907d4871f5237fac9fa15b15425e";
   }
 
   static const char* value(const ::franka_predict_action::StoreNewActionToQueueRequest_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xc9c6b563258de861ULL;
-  static const uint64_t static_value2 = 0x17080d1e01c3bf23ULL;
+  static const uint64_t static_value1 = 0xf20a907d4871f523ULL;
+  static const uint64_t static_value2 = 0x7fac9fa15b15425eULL;
 };
 
 template<class ContainerAllocator>
@@ -158,9 +164,10 @@ struct Definition< ::franka_predict_action::StoreNewActionToQueueRequest_<Contai
 {
   static const char* value()
   {
-    return "string model_name   # the name of the model to predict\n"
-"string instruction  # the instruction sended to model for predicton\n"
-"string unnorm_key   # the dataset of the scene\n"
+    return "string    model_name        # the name of the model to predict\n"
+"string    instruction       # the instruction sended to model for predicton\n"
+"string    unnorm_key        # the dataset of the scene\n"
+"float32[] source_action     # the pos and euler angle when prediction start\n"
 "\n"
 ;
   }
@@ -183,6 +190,7 @@ namespace serialization
       stream.next(m.model_name);
       stream.next(m.instruction);
       stream.next(m.unnorm_key);
+      stream.next(m.source_action);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -207,6 +215,12 @@ struct Printer< ::franka_predict_action::StoreNewActionToQueueRequest_<Container
     Printer<std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>>>::stream(s, indent + "  ", v.instruction);
     s << indent << "unnorm_key: ";
     Printer<std::basic_string<char, std::char_traits<char>, typename std::allocator_traits<ContainerAllocator>::template rebind_alloc<char>>>::stream(s, indent + "  ", v.unnorm_key);
+    s << indent << "source_action[]" << std::endl;
+    for (size_t i = 0; i < v.source_action.size(); ++i)
+    {
+      s << indent << "  source_action[" << i << "]: ";
+      Printer<float>::stream(s, indent + "  ", v.source_action[i]);
+    }
   }
 };
 
