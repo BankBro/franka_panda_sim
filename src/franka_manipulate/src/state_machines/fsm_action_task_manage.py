@@ -133,7 +133,8 @@ class ActionTaskManageFSM(ThreadedStateMachine):
 
             except Exception as e:
                 self._predict_store_action_failed()
-                rospy.logerr("Traceback:\n" + ''.join(traceback.format_tb(e.__traceback__)), f"\n{e}")
+                
+                rospy.logerr("Traceback:\n" + traceback.format_exc()+ f"\n{e}")
             return
 
         # Fetch an action succeed, ready to execute the action.
